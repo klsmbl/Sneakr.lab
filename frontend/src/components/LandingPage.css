@@ -97,6 +97,7 @@
   left: 50%;
   transform: translate(-50%, 0) rotate(-36deg);
   pointer-events: none;
+  z-index: 1;
 }
 
 .shoe {

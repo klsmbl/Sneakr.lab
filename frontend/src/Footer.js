@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import './Footer.css';
 
 function Footer() {
+  const navigate = useNavigate();
   // Column 1 - Custom Shoes Collections
   const shoesLinks = [
     'All Custom Shoes',
@@ -52,7 +54,25 @@ function Footer() {
             <ul className="footer__list">
               {aboutLinks.map((link, index) => (
                 <li key={index}>
-                  <a href="#" className="footer__link">
+                  <a 
+                    href={link === 'FAQs' ? '#faq' : link === 'Who We Are' ? '#about' : '#'} 
+                    className="footer__link"
+                    onClick={(e) => {
+                      if (link === 'FAQs') {
+                        e.preventDefault();
+                        document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                      } else if (link === 'Who We Are') {
+                        e.preventDefault();
+                        document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+                      } else if (link === 'Refund Policy') {
+                        e.preventDefault();
+                        navigate('/refund-policy');
+                      } else if (link === 'Terms of Services') {
+                        e.preventDefault();
+                        navigate('/terms-and-services');
+                      }
+                    }}
+                  >
                     {link}
                   </a>
                 </li>

@@ -1,5 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
+import AboutUs from './AboutUs';
+import FAQ from '../FAQ';
+import BusinessForm from '../BusinessForm';
+import Footer from '../Footer';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -60,6 +64,11 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <AboutUs />
+      <FAQ />
+      <BusinessForm />
+      <Footer />
     </div>
   );
 }

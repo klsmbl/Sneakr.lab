@@ -1,0 +1,94 @@
+/* About Us Section Styling */
+
+.about {
+  margin-top: 80px;
+  padding: 60px 0;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.about--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.about__container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* Header */
+
+.about__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.about__title {
+  font-family: 'Cinzel', serif;
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+
+/* Content */
+
+.about__content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about__text {
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--text-sub);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive Design */
+
+@media (max-width: 768px) {
+  .about {
+    margin-top: 60px;
+    padding: 40px 0;
+  }
+
+  .about__title {
+    font-size: 32px;
+  }
+
+  .about__text {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .about__container {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .about {
+    margin-top: 40px;
+    padding: 30px 0;
+  }
+
+  .about__title {
+    font-size: 28px;
+  }
+
+  .about__text {
+    font-size: 15px;
+  }
+}

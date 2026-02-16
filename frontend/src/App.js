@@ -7,11 +7,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';
 import { CustomizerPage } from './components/CustomizerPage';
+import RefundPolicy from './pages/RefundPolicy';
+import TermsAndServices from './pages/TermsAndServices';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import FAQ from './FAQ';
-import BusinessForm from './BusinessForm';
-import Footer from './Footer';
 
 function App() {
   return (
@@ -19,6 +18,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/customizer" element={<CustomizerPage />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/terms-and-services" element={<TermsAndServices />} />
       </Routes>
     </Router>
   );

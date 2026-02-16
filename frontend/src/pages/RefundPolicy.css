@@ -1,0 +1,270 @@
+/* Refund Policy Page Styling */
+
+.refund-policy {
+  min-height: 100vh;
+  padding: 60px 28px 80px;
+  background: var(--bg);
+  color: var(--text-main);
+}
+
+.refund-policy__container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Back Button */
+
+.refund-policy__back {
+  background: transparent;
+  border: 1px solid rgba(217, 212, 204, 0.3);
+  color: var(--accent);
+  padding: 10px 20px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refund-policy__back:hover {
+  background: rgba(229, 225, 219, 0.1);
+  border-color: var(--accent);
+}
+
+/* Page Header */
+
+.refund-policy__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.refund-policy__title {
+  font-family: 'Cinzel', serif;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+
+/* Policy Description */
+
+.refund-policy__description {
+  max-width: 800px;
+  margin: 0 auto 60px;
+  text-align: center;
+}
+
+.refund-policy__text {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--text-sub);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Form Section */
+
+.refund-policy__form-section {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.refund-policy__form-title {
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 40px 0;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+
+/* Form Container */
+
+.refund-form {
+  background: rgba(97, 100, 111, 0.2);
+  border: 1px solid rgba(217, 212, 204, 0.15);
+  border-radius: 12px;
+  padding: 40px;
+}
+
+/* Form Grid */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* Form Group */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group--full {
+  grid-column: 1 / -1;
+}
+
+/* Labels */
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Input Fields */
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+select,
+textarea {
+  background: rgba(31, 36, 42, 0.6);
+  border: 1px solid rgba(217, 212, 204, 0.2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  color: var(--text-main);
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+textarea::placeholder {
+  color: var(--text-sub);
+  opacity: 0.6;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(217, 212, 204, 0.5);
+  background: rgba(31, 36, 42, 0.9);
+  box-shadow: 0 0 0 3px rgba(229, 225, 219, 0.1);
+}
+
+/* Select Dropdown */
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23e5e1db' d='M1.41 0L6 4.58 10.59 0 12 1.42l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+select option {
+  background: var(--dark);
+  color: var(--text-main);
+}
+
+/* Textarea */
+
+textarea {
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 120px;
+}
+
+/* Button Container */
+
+.refund-form__button-container {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0 0 0;
+}
+
+/* Submit Button */
+
+.refund-form__button {
+  background: linear-gradient(135deg, rgba(229, 225, 219, 0.15) 0%, rgba(229, 225, 219, 0.05) 100%);
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 14px 48px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.refund-form__button:hover {
+  background: rgba(229, 225, 219, 0.15);
+  box-shadow: 0 8px 24px rgba(229, 225, 219, 0.2);
+  transform: translateY(-2px);
+}
+
+.refund-form__button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+
+@media (max-width: 768px) {
+  .refund-policy {
+    padding: 40px 20px 60px;
+  }
+
+  .refund-policy__title {
+    font-size: 36px;
+  }
+
+  .refund-policy__form-title {
+    font-size: 26px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .refund-form {
+    padding: 30px 24px;
+  }
+
+  .refund-form__button {
+    padding: 12px 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .refund-policy__title {
+    font-size: 28px;
+  }
+
+  .refund-policy__form-title {
+    font-size: 22px;
+  }
+
+  .refund-policy__text {
+    font-size: 15px;
+  }
+
+  .refund-form {
+    padding: 24px 20px;
+  }
+}

@@ -35,7 +35,7 @@ function FAQ() {
   };
 
   return (
-    <section className="faq">
+    <section id="faq" className="faq">
       <div className="faq__container">
         <div className="faq__header">
           <h2 className="faq__title">Frequently Asked Questions</h2>
