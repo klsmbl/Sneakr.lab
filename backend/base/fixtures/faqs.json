@@ -1,0 +1,74 @@
+[
+  {
+    "model": "base.faq",
+    "pk": 1,
+    "fields": {
+      "question": "What is the production process of custom shoes?",
+      "answer": "At Sneakr, we use an innovative process to create fully custom branded footwear. Our process involves setting the physical shoe parts up to match your design, printing on all parts, drying the parts, sewing the parts together, forming the shoe, sealing the shoe to preserve the design, heat treating again, and then finally shipping off. The entire process typically takes 10 business days from order to shipment.",
+      "order": 1
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 2,
+    "fields": {
+      "question": "What are your shipping options & times?",
+      "answer": "We offer multiple shipping options to suit your needs: Standard shipping (5-7 business days) at no additional cost, Express shipping (2-3 business days) for expedited orders, and Overnight shipping for urgent orders. International shipping is available to most countries with varying delivery times based on location.",
+      "order": 2
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 3,
+    "fields": {
+      "question": "How is the quality of custom shoes?",
+      "answer": "We maintain the highest quality standards in our custom shoe production. Each pair undergoes rigorous quality control checks before shipment. Our custom shoes are made with premium materials and our printing process ensures vibrant, durable designs that won't fade or peel. Every shoe is individually inspected to ensure it meets our strict quality requirements.",
+      "order": 3
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 4,
+    "fields": {
+      "question": "Can I sell my shoes?",
+      "answer": "If you're interested in selling Sneakr custom shoes commercially, we have partnership programs available. Custom shoes created on our platform can be sold if you're part of our business partner program. Please contact our partnership team for details on licensing and commercial resale options.",
+      "order": 4
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 5,
+    "fields": {
+      "question": "How Can I Partner? (Businesses, Athletes, Influencers, Promoters, Bloggers etc...)",
+      "answer": "We actively seek partnerships with businesses, athletes, influencers, and content creators. Partnership opportunities include white-label solutions, affiliate programs, and custom bulk orders with special pricing. To discuss partnership opportunities, please fill out our partnership application form or contact our business development team directly at partnerships@sneakr.com",
+      "order": 5
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 6,
+    "fields": {
+      "question": "Do you have capacity for large business orders?",
+      "answer": "Yes, we specialize in handling large-scale orders for businesses and teams. Our production facility can accommodate bulk orders of any size with flexible timelines. For orders exceeding 100 pairs, we offer volume discounts and dedicated account management. Contact our bulk orders team at bulk@sneakr.com to discuss your specific requirements.",
+      "order": 6
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 7,
+    "fields": {
+      "question": "How customizable are the shoes?",
+      "answer": "Our custom shoes offer extensive customization options. You can customize colors, patterns, materials, overlays, and add personalized text or logos. Our design tool provides a real-time preview of your customizations. Most shoe styles can be customized on the upper, sole, and heel areas. Visit our design studio to explore all available customization options.",
+      "order": 7
+    }
+  },
+  {
+    "model": "base.faq",
+    "pk": 8,
+    "fields": {
+      "question": "Country's Duty & Customs On Custom Shoes",
+      "answer": "Import duties and customs fees vary by country and are the responsibility of the customer. We recommend checking with your local customs office for specific information about duties and taxes on imported goods. We provide a detailed invoice with every shipment to assist with customs clearance. For international orders within the EU, customs duties are typically handled transparently at delivery.",
+      "order": 8
+    }
+  }
+]

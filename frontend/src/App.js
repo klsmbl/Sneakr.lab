@@ -1,4 +1,7 @@
 import './App.css';
+import FAQ from './FAQ';
+import BusinessForm from './BusinessForm';
+import Footer from './Footer';
 
 function App() {
   return (
@@ -53,6 +56,10 @@ function App() {
           </div>
         </div>
       </section>
+
+      <FAQ />
+      <BusinessForm />
+      <Footer />
     </div>
   );
 }
