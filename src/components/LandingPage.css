@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;600&display=swap');
+
+:root {
+  --bg: #2f343c;
+  --panel: #61646f;
+  --text-main: #d9d4cc;
+  --text-sub: #b5b0a8;
+  --accent: #e5e1db;
+  --dark: #1f242a;
+}
+
+.home {
+  min-height: 100vh;
+  padding: 32px 28px 48px;
+  background: var(--bg);
+  color: var(--text-main);
+}
+
+.hero {
+  max-width: 1120px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  position: relative;
+  z-index: 10;
+}
+
+.hero__icons {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 212, 204, 0.4);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+.icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.hero__brand {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+  font-size: 24px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 32px;
+  object-fit: contain;
+}
+
+.hero__body {
+  position: relative;
+  min-height: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 0 40px;
+}
+
+.hero__art {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  pointer-events: none;
+  margin-bottom: 30px;
+}
+
+.diagonal {
+  position: absolute;
+  width: 300%;
+  height: 520px;
+  background: var(--panel);
+  top: 80px;
+  left: 50%;
+  transform: translate(-50%, 0) rotate(-36deg);
+  pointer-events: none;
+}
+
+.shoe {
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  border-radius: 28px;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+.shoe--left {
+  left: 50%;
+  top: 40px;
+  transform: translateX(-260px) rotate(-20deg);
+  z-index: 2;
+}
+
+.shoe--right {
+  right: auto;
+  left: 50%;
+  top: 10px;
+  background: transparent;
+  transform: translateX(40px) rotate(15deg);
+  z-index: 3;
+}
+
+.hero__copy {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.hero__title {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(32px, 4.6vw, 48px);
+  margin: 0 0 12px;
+}
+
+.hero__subtitle {
+  color: var(--text-sub);
+  margin: 0;
+  font-size: clamp(15px, 2.2vw, 18px);
+  line-height: 1.6;
+}
+
+.hero__cta {
+  margin-top: 16px;
+  padding: 10px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--dark);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.hero__cta:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.hero__pills {
+  position: absolute;
+  right: -480px;
+  top: 160px;
+  display: grid;
+  gap: 26px;
+  z-index: 2;
+}
+
+.pill {
+  width: 240px;
+  height: 110px;
+  border-radius: 999px;
+  background: #ddd7cf;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.pill--mid {
+  background: #c4c8cc;
+}
+
+.pill--dark {
+  background: #8f939a;
+}
+
+@media (max-width: 980px) {
+  .hero__body {
+    min-height: 660px;
+  }
+
+  .shoe--left {
+    left: 60px;
+  }
+
+  .shoe--right {
+    right: 120px;
+  }
+}
+
+@media (max-width: 700px) {
+  .hero__body {
+    min-height: 560px;
+  }
+
+  .hero__pills {
+    position: static;
+    justify-content: center;
+    grid-auto-flow: column;
+    margin-top: 24px;
+  }
+
+  .diagonal {
+    height: 200px;
+    top: 160px;
+  }
+
+  .shoe {
+    width: 170px;
+    height: 170px;
+  }
+
+  .shoe--left {
+    left: 20px;
+    top: 110px;
+  }
+
+  .shoe--right {
+    right: 20px;
+    top: 90px;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero__top {
+    gap: 12px;
+  }
+
+  .hero__brand {
+    font-size: 18px;
+  }
+
+  .hero__body {
+    min-height: 480px;
+  }
+}

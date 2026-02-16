@@ -1,0 +1,43 @@
+# Download 3D Sneaker Models
+
+To use all available sneaker models, download the following files and place them in the `public/models/` folder.
+
+## Required Downloads
+
+### 1. New Balance 574 Classic
+- **Source**: https://sketchfab.com/3d-models/used-new-balance-574-classic-free-f0aad4f64925479da3f607b186314eef
+- **Filename**: `new-balance-574.glb`
+- **License**: CC BY 4.0
+
+### 2. Sport Sneakers
+- **Source**: https://sketchfab.com/3d-models/sport-sneakers-6e5bb23816294d4a994e44d03e6a2c1a
+- **Filename**: `sport-sneakers.glb`
+- **License**: Check model page
+
+### 3. Simple Slip-On Shoes
+- **Source**: Search "simple slip-on shoes" on Sketchfab
+- **Filename**: `slip_ons.gltf`
+- **License**: Check model page
+
+## Installation Steps
+
+1. Visit each Sketchfab link above
+2. Click "Download 3D Model"
+3. Choose "glTF" format (auto-converted)
+4. Download and extract the files
+5. Rename the main .glb or .gltf file to match the filename above
+6. Move the files to `public/models/` folder
+
+## Default Models
+
+The following models load from external CDN (no download needed):
+- Classic Low (MaterialsVariantsShoe.glb)
+- Runner Pro (shoe.gltf)
+- High Top
+- Court Classic
+- Street Style
+- Sport Low
+- Lifestyle
+- Retro Runner
+
+These external models work out of the box but may load slower than local files.
