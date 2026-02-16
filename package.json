@@ -1,8 +1,8 @@
 {
+  "name": "sneakr-lab",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-<<<<<<< Updated upstream
-    "virtualenv": "^0.3.1"
-=======
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@testing-library/dom": "^10.4.1",
@@ -42,6 +42,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
->>>>>>> Stashed changes
   }
 }
