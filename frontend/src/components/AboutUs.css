@@ -2,13 +2,13 @@
 
 .about {
   margin-top: 80px;
-  padding: 60px 0;
+  padding: 120px 0 140px;
   width: 100%;
   position: relative;
   z-index: 10;
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transition: opacity 1s ease, transform 1s ease;
 }
 
 .about--visible {
@@ -26,16 +26,16 @@
 
 .about__header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
 .about__title {
   font-family: 'Cinzel', serif;
-  font-size: 42px;
-  font-weight: 700;
+  font-size: 48px;
+  font-weight: 800;
   margin: 0;
   color: var(--accent);
-  letter-spacing: -0.5px;
+  letter-spacing: 1.5px;
 }
 
 /* Content */
@@ -49,8 +49,8 @@
 .about__text {
   font-family: 'Manrope', sans-serif;
   font-size: 18px;
-  font-weight: 400;
-  line-height: 1.8;
+  font-weight: 500;
+  line-height: 2;
   color: var(--text-sub);
   margin: 0;
   letter-spacing: 0.3px;
@@ -60,17 +60,17 @@
 
 @media (max-width: 768px) {
   .about {
-    margin-top: 60px;
-    padding: 40px 0;
+    padding: 80px 0 100px;
   }
 
   .about__title {
-    font-size: 32px;
+    font-size: 36px;
+    letter-spacing: 1px;
   }
 
   .about__text {
     font-size: 16px;
-    line-height: 1.7;
+    line-height: 1.9;
   }
 
   .about__container {
@@ -80,8 +80,7 @@
 
 @media (max-width: 480px) {
   .about {
-    margin-top: 40px;
-    padding: 30px 0;
+    padding: 60px 0 80px;
   }
 
   .about__title {

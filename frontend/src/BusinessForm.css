@@ -1,9 +1,17 @@
 /* Business Form Section Styling */
 
 .business-form {
-  margin-top: 80px;
-  padding: 60px 0;
+  margin-top: 0;
+  padding: 120px 0 140px;
   width: 100%;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.business-form--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .business-form__container {
@@ -16,28 +24,28 @@
 
 .business-form__header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 80px;
 }
 
 .business-form__title {
   font-family: 'Cinzel', serif;
-  font-size: 42px;
-  font-weight: 700;
+  font-size: 48px;
+  font-weight: 800;
   margin: 0 0 16px 0;
   color: var(--accent);
-  letter-spacing: -0.5px;
+  letter-spacing: 1.5px;
 }
 
 .business-form__description {
-  font-size: 16px;
-  font-weight: 400;
+  font-size: 17px;
+  font-weight: 500;
   color: var(--text-sub);
   margin: 0;
   letter-spacing: 0.3px;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.6;
+  line-height: 1.9;
 }
 
 /* Form Container */
@@ -195,17 +203,17 @@ textarea {
 
 @media (max-width: 768px) {
   .business-form {
-    margin-top: 60px;
-    padding: 40px 0;
+    padding: 80px 0 100px;
   }
 
   .business-form__header {
-    margin-bottom: 40px;
+    margin-bottom: 60px;
   }
 
   .business-form__title {
-    font-size: 32px;
+    font-size: 36px;
     margin-bottom: 12px;
+    letter-spacing: 1px;
   }
 
   .business-form__description {
@@ -223,12 +231,17 @@ textarea {
 }
 
 @media (max-width: 480px) {
+  .business-form {
+    padding: 60px 0 80px;
+  }
+
   .business-form__container {
     padding: 0 20px;
   }
 
   .business-form__title {
-    font-size: 28px;
+    font-size: 32px;
+    letter-spacing: 0.5px;
   }
 
   .business-form__description {

@@ -5,6 +5,7 @@
   padding: 60px 28px 80px;
   background: var(--bg);
   color: var(--text-main);
+  overflow-x: hidden;
 }
 
 .refund-policy__container {
@@ -46,10 +47,10 @@
 .refund-policy__title {
   font-family: 'Cinzel', serif;
   font-size: 48px;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   color: var(--accent);
-  letter-spacing: -0.5px;
+  letter-spacing: 1.5px;
 }
 
 /* Policy Description */
@@ -63,7 +64,7 @@
 .refund-policy__text {
   font-family: 'Manrope', sans-serif;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.7;
   color: var(--text-sub);
   margin: 0;
@@ -79,12 +80,12 @@
 
 .refund-policy__form-title {
   font-family: 'Cinzel', serif;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   text-align: center;
   margin: 0 0 40px 0;
   color: var(--accent);
-  letter-spacing: -0.3px;
+  letter-spacing: 1px;
 }
 
 /* Form Container */

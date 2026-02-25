@@ -1,7 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './BusinessForm.css';
 
 function BusinessForm() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
   // State object to manage all form inputs
   // Each field has its own property that updates when user types
   const [formData, setFormData] = useState({
@@ -42,7 +66,10 @@ function BusinessForm() {
   };
 
   return (
-    <section className="business-form">
+    <section 
+      className={`business-form ${isVisible ? 'business-form--visible' : ''}`}
+      ref={sectionRef}
+    >
       <div className="business-form__container">
         <div className="business-form__header">
           <h2 className="business-form__title">Get Branded Shoes For Your Business</h2>

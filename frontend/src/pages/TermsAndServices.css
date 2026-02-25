@@ -5,6 +5,7 @@
   padding: 60px 28px 80px;
   background: var(--bg);
   color: var(--text-main);
+  overflow-x: hidden;
 }
 
 .terms-services__container {
@@ -46,10 +47,10 @@
 .terms-services__title {
   font-family: 'Cinzel', serif;
   font-size: 48px;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0 0 12px 0;
   color: var(--accent);
-  letter-spacing: -0.5px;
+  letter-spacing: 1.5px;
 }
 
 .terms-services__updated {
@@ -72,7 +73,7 @@
   font-weight: 700;
   color: var(--accent);
   margin: 0 0 20px 0;
-  letter-spacing: -0.3px;
+  letter-spacing: 0.5px;
 }
 
 .terms-section__content {
@@ -84,7 +85,8 @@
   line-height: 1.8;
   color: var(--text-sub);
   margin: 0 0 16px 0;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 .terms-section__content p:last-child {

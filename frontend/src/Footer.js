@@ -1,8 +1,32 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import './Footer.css';
 
 function Footer() {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+  const footerRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (footerRef.current) {
+      observer.observe(footerRef.current);
+    }
+
+    return () => {
+      if (footerRef.current) {
+        observer.unobserve(footerRef.current);
+      }
+    };
+  }, []);
   // Column 1 - Custom Shoes Collections
   const shoesLinks = [
     'All Custom Shoes',
@@ -31,7 +55,10 @@ function Footer() {
   ];
 
   return (
-    <footer className="footer">
+    <footer 
+      className={`footer ${isVisible ? 'footer--visible' : ''}`}
+      ref={footerRef}
+    >
       <div className="footer__container">
         <div className="footer__columns">
           {/* Column 1: Custom Shoes Collections */}

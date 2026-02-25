@@ -2,6 +2,8 @@
 
 :root {
   --bg: #2f343c;
+  --bg-gradient-top: #1d2433;
+  --bg-gradient-bottom: #2d3544;
   --panel: #61646f;
   --text-main: #d9d4cc;
   --text-sub: #b5b0a8;
@@ -9,13 +11,16 @@
   --dark: #1f242a;
 }
 
-* {
-  box-sizing: border-box;
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  margin: 0;
-  background: var(--bg);
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bottom));
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: 'Manrope', sans-serif;
 }

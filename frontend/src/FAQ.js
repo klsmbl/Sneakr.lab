@@ -1,10 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './FAQ.css';
 
 function FAQ() {
   // State to track which FAQ item is currently open (by index)
   // Only one FAQ can be open at a time
   const [openIndex, setOpenIndex] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   const faqData = [
     {
@@ -35,7 +58,11 @@ function FAQ() {
   };
 
   return (
-    <section id="faq" className="faq">
+    <section 
+      id="faq" 
+      className={`faq ${isVisible ? 'faq--visible' : ''}`}
+      ref={sectionRef}
+    >
       <div className="faq__container">
         <div className="faq__header">
           <h2 className="faq__title">Frequently Asked Questions</h2>
