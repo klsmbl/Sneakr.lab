@@ -40,57 +40,73 @@ function applyLayerColorsToScene(scene, designId, layerColors) {
     let zoneName = '';
     
     // Map mesh names to color zones - ORDER MATTERS!
-    // Check most specific patterns first
+    // Check most specific patterns first based on Blender hierarchy
     
-    // Rims zone: Midsole rim & toe rim combined (check for 'rim' in name)
-    if (meshName.includes('rim')) {
-      targetColor = layerColors.midsoleRim;
-      zoneName = 'RIMS (midsoleRim)';
+    // Stitching zone: FIRST - STICHES group meshes (Plane003-012 with underscores)
+    if (meshName.includes('stitch') || 
+        meshName.startsWith('plane003') || 
+        meshName.startsWith('plane005') || 
+        meshName.startsWith('plane006') || 
+        meshName.startsWith('plane007') || 
+        meshName.startsWith('plane008') || 
+        meshName.startsWith('plane009') || 
+        meshName.startsWith('plane010') || 
+        meshName.startsWith('plane011') || 
+        meshName.startsWith('plane012')) {
+      targetColor = layerColors.stitching;
+      zoneName = 'STITCHING';
     }
-    // Toe Rim specifically
-    else if (meshName.includes('toe')) {
+    // Trim zone: Check for _rim or trim BEFORE midsole (to catch Midsole_rim)
+    else if (meshName.includes('_rim') || 
+             meshName.includes('trim') || 
+             meshName.includes('fine leather')) {
       targetColor = layerColors.midsoleRim;
-      zoneName = 'RIMS (toe)';
+      zoneName = 'TRIM';
     }
-    // Heel zone: Heel area (check BEFORE sole to avoid conflicts)
+    // Swoosh zone: Nike Logo, Air Logo - check BEFORE Main (to catch Air_Logomain)
+    else if (meshName.includes('logo') || 
+             meshName.includes('nike') ||
+             meshName.includes('air_') ||
+             meshName.includes('swoosh')) {
+      targetColor = layerColors.accent;
+      zoneName = 'SWOOSH';
+    }
+    // Outsole zone: OUTSOLE, OUTSOLE2, Plane_Material.010_0 (specific)
+    else if (meshName.includes('outsole') || 
+        (meshName.includes('plane') && meshName.includes('material') && meshName.includes('010_0'))) {
+      targetColor = layerColors.sole;
+      zoneName = 'OUTSOLE';
+    }
+    // Midsole zone: Midsole, MID SOLE (but not _rim)
+    else if ((meshName.includes('mid') && meshName.includes('sole')) || 
+             (meshName.includes('midsole') && !meshName.includes('_rim'))) {
+      targetColor = layerColors.midsole;
+      zoneName = 'MIDSOLE';
+    }
+    // Heel zone: Heel
     else if (meshName.includes('heel')) {
       targetColor = layerColors.heel;
-      zoneName = 'HEEL';
+      zoneName = 'HEEL TAB';
     } 
-    // Sole zone: Bottom and midsole (but not midsole rim)
-    else if (meshName.includes('sole') || meshName.includes('midsole')) {
-      targetColor = layerColors.sole;
-      zoneName = 'SOLE';
-    } 
-    // Laces zone - All laces (Laces, Laces2, Laces3, Laces4, etc.)
+    // Laces zone: Lace Main
     else if (meshName.includes('lace')) {
       targetColor = layerColors.laces;
       zoneName = 'LACES';
     } 
-    // Logos zone: Nike & Air logos combined
-    else if (meshName.includes('logo')) {
-      targetColor = layerColors.accent;
-      zoneName = 'LOGOS (logo)';
-    }
-    else if (meshName.includes('air')) {
-      targetColor = layerColors.accent;
-      zoneName = 'LOGOS (air)';
-    }
-    else if (meshName.includes('swoosh') || meshName.includes('accent')) {
-      targetColor = layerColors.accent;
-      zoneName = 'LOGOS (swoosh/accent)';
-    }
-    // Upper zone: All Main Body meshes (Main Body1, Main Body2, Main Body3, etc.)
-    else if (meshName.includes('main') && meshName.includes('body')) {
+    // Main zone: Main, Inside Fabric, TOE BOX
+    else if (meshName.includes('main') || 
+             meshName.includes('inside fabric') || 
+             meshName.includes('toe box') ||
+             meshName.includes('quarter')) {
       targetColor = layerColors.upper;
-      zoneName = 'UPPER (Main Body)';
+      zoneName = 'MAIN';
     } 
-    // Upper zone fallback: Other upper parts
+    // Upper zone fallback
     else if (meshName.includes('upper')) {
       targetColor = layerColors.upper;
       zoneName = 'UPPER';
     } 
-    // Default: unnamed objects go to upper color
+    // Final default: unnamed objects go to upper color
     else {
       targetColor = layerColors.upper;
       zoneName = 'UPPER (default)';
@@ -254,12 +270,29 @@ function Scene({ modelId, designId, layerColors, showWatermark }) {
   );
 }
 
-export function Mockup3D() {
+export function Mockup3D({ onCaptureReady }) {
   const { design } = useDesign();
   const { canRemoveWatermark } = useSubscription();
-  const showWatermark = !canRemoveWatermark();
+  const showWatermark = false;
   const containerRef = useRef(null);
+  const canvasRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Expose capture function via callback
+  useEffect(() => {
+    if (onCaptureReady && canvasRef.current) {
+      const captureImage = () => {
+        if (canvasRef.current) {
+          const canvas = canvasRef.current.querySelector('canvas');
+          if (canvas) {
+            return canvas.toDataURL('image/png');
+          }
+        }
+        return null;
+      };
+      onCaptureReady(captureImage);
+    }
+  }, [onCaptureReady]);
 
   return (
     <section className="card shadow-sm mb-4">
@@ -270,7 +303,10 @@ export function Mockup3D() {
         </p>
 
         <div
-          ref={containerRef}
+          ref={(el) => {
+            containerRef.current = el;
+            canvasRef.current = el;
+          }}
           className="rounded overflow-hidden bg-dark d-flex align-items-center justify-content-center"
           style={{ height: 320 }}
           onPointerDown={() => setIsDragging(true)}
@@ -279,7 +315,7 @@ export function Mockup3D() {
         >
           <Canvas
             camera={{ position: [1.8, 1, 1.8], fov: 42 }}
-            gl={{ antialias: true }}
+            gl={{ antialias: true, preserveDrawingBuffer: true }}
             style={{ width: '100%', height: '100%', cursor: isDragging ? 'grabbing' : 'grab' }}
           >
             <Suspense fallback={null} key={design.modelId}>

@@ -7,10 +7,28 @@ import { SaveExport } from './SaveExport';
 import { OrderSummary } from './OrderSummary';
 import { SubscriptionTierToggle } from './SubscriptionTierToggle';
 import { useNavigate } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function CustomizerPage() {
   const navigate = useNavigate();
+  const [captureFunction, setCaptureFunction] = useState(null);
+
+  const handleCaptureReady = useCallback((captureFunc) => {
+    setCaptureFunction(() => captureFunc);
+  }, []);
+
+  const handleTryOnClick = () => {
+    if (captureFunction) {
+      const shoeImageData = captureFunction();
+      if (shoeImageData) {
+        localStorage.setItem('shoe_image', shoeImageData);
+        navigate('/tryon');
+      } else {
+        alert('Failed to capture shoe image. Please try again.');
+      }
+    }
+  };
 
   return (
     <SubscriptionProvider>
@@ -37,11 +55,29 @@ export function CustomizerPage() {
             <div className="col-lg-6">
               <SneakerSetup />
               <ColorCustomizer />
+              
+              {/* Virtual Try-On Button */}
+              <div className="card shadow-sm mb-4">
+                <div className="card-body">
+                  <h5 className="h6 mb-3">✨ Virtual Try-On</h5>
+                  <p className="text-muted small mb-3">
+                    See how your custom shoe looks on you!
+                  </p>
+                  <button
+                    className="btn btn-primary w-100"
+                    onClick={handleTryOnClick}
+                    disabled={!captureFunction}
+                  >
+                    👟 Try On Your Shoe
+                  </button>
+                </div>
+              </div>
+
               <SaveExport />
               <OrderSummary />
             </div>
             <div className="col-lg-6">
-              <Mockup3D />
+              <Mockup3D onCaptureReady={handleCaptureReady} />
             </div>
           </div>
 

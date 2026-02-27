@@ -19,6 +19,12 @@ export const SNEAKER_MODEL_ASSETS = {
     rotationY: Math.PI / 4,
     rotationX: 0,
   },
+  'airforce-new': {
+    url: '/models/airforccenew.glb?v=11',
+    scale: 2.0,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
+  },
   'runner-1': {
     url: `${UI_CODE_TV_BASE}/shoe.gltf`,
     scale: 1.8,

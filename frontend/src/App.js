@@ -7,6 +7,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';
 import { CustomizerPage } from './components/CustomizerPage';
+import { TryOnPage } from './components/TryOnPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import FAQ from './FAQ';
@@ -19,6 +20,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/customizer" element={<CustomizerPage />} />
+        <Route path="/tryon" element={<TryOnPage />} />
       </Routes>
     </Router>
   );

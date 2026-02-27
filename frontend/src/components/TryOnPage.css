@@ -1,0 +1,32 @@
+/**
+ * TryOnPage Styles
+ */
+
+.shoe-preview img,
+.person-preview img,
+.result-preview img {
+  max-height: 400px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.person-preview,
+.shoe-preview {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-preview {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}

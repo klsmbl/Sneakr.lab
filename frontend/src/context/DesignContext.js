@@ -7,19 +7,21 @@ import { createContext, useContext, useState, useCallback } from 'react';
 
 const DEFAULT_LAYER_COLORS = {
   upper: '#FFFFFF',
-  sole: '#2C2C2C',
-  midsoleRim: '#E5E5E5',
+  sole: '#FFFFFF',
+  midsole: '#FFFFFF',
+  midsoleRim: '#FFFFFF',
   laces: '#FFFFFF',
-  toe: '#E5E5E5',
-  heel: '#1A1A1A',
-  tongue: '#F5F5F5',
-  swoosh: '#FF0000',
-  accent: '#FFD700',
+  toe: '#FFFFFF',
+  heel: '#FFFFFF',
+  tongue: '#FFFFFF',
+  swoosh: '#FFFFFF',
+  accent: '#FFFFFF',
+  stitching: '#FFFFFF',
 };
 
 const DEFAULT_DESIGN = {
   modelId: 'airforce',
-  modelName: 'Air Force',
+  modelName: 'AirForce 1',
   accentColor: '#FFFFFF',
   layerColors: DEFAULT_LAYER_COLORS,
   designId: 'plain',
