@@ -1,0 +1,107 @@
+/* Animated Background Pattern */
+
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.03;
+}
+
+.animated-background__pattern {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200vw;
+  height: 200vh;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+  gap: 60px;
+  padding: 40px;
+  animation: diagonalMove 50s linear infinite;
+}
+
+@keyframes diagonalMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(25vw, 25vh);
+  }
+}
+
+.animated-background__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--rotation));
+  grid-row: calc(var(--row) + 1);
+  grid-column: calc(var(--col) + 1);
+}
+
+.animated-background__item img {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 1;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Ensure seamless tiling */
+.animated-background__pattern::before,
+.animated-background__pattern::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .animated-background__pattern {
+    gap: 50px;
+    padding: 30px;
+  }
+
+  .animated-background__item img {
+    width: 65px;
+  }
+}
+
+@media (max-width: 768px) {
+  .animated-background {
+    opacity: 0.02;
+  }
+
+  .animated-background__pattern {
+    gap: 40px;
+    padding: 20px;
+    animation: diagonalMove 60s linear infinite;
+  }
+
+  .animated-background__item img {
+    width: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .animated-background {
+    opacity: 0.015;
+  }
+
+  .animated-background__pattern {
+    gap: 30px;
+  }
+
+  .animated-background__item img {
+    width: 45px;
+  }
+}

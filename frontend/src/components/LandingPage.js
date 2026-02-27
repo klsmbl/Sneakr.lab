@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
+import { AnimatedBackground } from './AnimatedBackground';
 import AboutUs from './AboutUs';
 import FAQ from '../FAQ';
 import BusinessForm from '../BusinessForm';
@@ -14,6 +15,7 @@ export function LandingPage() {
 
   return (
     <div className="home">
+      <AnimatedBackground />
       <header className="header">
         <div className="header__content">
           <div className="header__icons">
