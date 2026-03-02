@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './BusinessForm.css';
 
 function BusinessForm() {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
@@ -187,7 +189,14 @@ function BusinessForm() {
 
           {/* Disclaimer */}
           <p className="business-form__disclaimer">
-            By submitting, you agree to occasional SMS updates. Msg &amp; data rates may apply. <a href="#terms">Terms &amp; Privacy</a>.
+            By submitting, you agree to occasional SMS updates. Msg &amp; data rates may apply.{' '}
+            <button 
+              type="button"
+              onClick={() => navigate('/terms')} 
+              className="business-form__terms-link"
+            >
+              Terms &amp; Services
+            </button>
           </p>
         </form>
       </div>

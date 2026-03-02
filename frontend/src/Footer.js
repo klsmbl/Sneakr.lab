@@ -96,7 +96,7 @@ function Footer() {
                         navigate('/refund-policy');
                       } else if (link === 'Terms of Services') {
                         e.preventDefault();
-                        navigate('/terms-and-services');
+                        navigate('/terms');
                       }
                     }}
                   >
@@ -125,6 +125,64 @@ function Footer() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Social Media Links */}
+        <div className="footer__social">
+          <a 
+            href="https://www.facebook.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="Facebook"
+          >
+            <img src="/facebook (1).png" alt="Facebook" className="footer__social-icon" />
+          </a>
+          <a 
+            href="https://x.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="Twitter"
+          >
+            <img src="/twitter.png" alt="Twitter" className="footer__social-icon" />
+          </a>
+          <a 
+            href="https://www.instagram.com/sneakrlab" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="Instagram"
+          >
+            <img src="/instagram.png" alt="Instagram" className="footer__social-icon" />
+          </a>
+          <a 
+            href="https://www.tiktok.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="TikTok"
+          >
+            <img src="/tik-tok.png" alt="TikTok" className="footer__social-icon" />
+          </a>
+          <a 
+            href="https://www.youtube.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="YouTube"
+          >
+            <img src="/youtube (1).png" alt="YouTube" className="footer__social-icon" />
+          </a>
+          <a 
+            href="https://www.pinterest.com/sneakrlab" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__social-link"
+            aria-label="Pinterest"
+          >
+            <img src="/pinterest-logo.png" alt="Pinterest" className="footer__social-icon" />
+          </a>
         </div>
 
         {/* Footer Bottom - Copyright */}

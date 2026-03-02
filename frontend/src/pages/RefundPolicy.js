@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RefundPolicy.css';
 
 function RefundPolicy() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // State object to manage all form inputs
   const [formData, setFormData] = useState({

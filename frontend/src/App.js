@@ -19,7 +19,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/customizer" element={<CustomizerPage />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
-        <Route path="/terms-and-services" element={<TermsAndServices />} />
+        <Route path="/terms" element={<TermsAndServices />} />
       </Routes>
     </Router>
   );
