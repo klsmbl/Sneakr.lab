@@ -69,6 +69,7 @@ function BusinessForm() {
 
   return (
     <section 
+      id="business-form"
       className={`business-form ${isVisible ? 'business-form--visible' : ''}`}
       ref={sectionRef}
     >
@@ -134,7 +135,7 @@ function BusinessForm() {
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+63 (912) 345-6789"
                 required
               />
             </div>

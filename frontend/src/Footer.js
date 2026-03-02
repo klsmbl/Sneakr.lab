@@ -113,7 +113,7 @@ function Footer() {
             <div className="footer__contact">
               <p className="footer__contact-item">
                 <span className="footer__label">Phone Number:</span>
-                <span className="footer__value">+1 (857) 380-2244</span>
+                <span className="footer__value">+63 (917) 123-4567</span>
               </p>
               <p className="footer__contact-item">
                 <span className="footer__label">Email:</span>

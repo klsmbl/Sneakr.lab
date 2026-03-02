@@ -18,18 +18,14 @@ export function LandingPage() {
       <AnimatedBackground />
       <header className="header">
         <div className="header__content">
-          <div className="header__icons">
-            <button className="icon-button" type="button" aria-label="Menu">
-              <img src="/menu.png" alt="Menu" className="icon-img" />
-            </button>
-            <button className="icon-button" type="button" aria-label="Search">
-              <img src="/search.png" alt="Search" className="icon-img" />
-            </button>
-          </div>
-
           <div className="header__brand">
             <img src="/Sneakr.lab.png" alt="SNEAKR.LAB" className="logo-img" />
           </div>
+
+          <nav className="header__nav">
+            <button className="nav-link" onClick={handleGetStarted}>Design a Custom Shoe</button>
+            <button className="nav-link" onClick={() => document.getElementById('business-form')?.scrollIntoView({ behavior: 'smooth' })}>Branded Business Shoes</button>
+          </nav>
 
           <div className="header__icons">
             <button className="icon-button" type="button" aria-label="Cart">

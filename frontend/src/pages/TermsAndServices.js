@@ -564,7 +564,7 @@ function TermsAndServices() {
               <strong>Email:</strong> <a href="mailto:support@sneakrlab.com" className="terms-link">support@sneakrlab.com</a><br />
               <strong>Legal Inquiries:</strong> <a href="mailto:legal@sneakrlab.com" className="terms-link">legal@sneakrlab.com</a><br />
               <strong>Business Address:</strong> Angeles City, Pampanga, Philippines<br />
-              <strong>Phone:</strong> +1 (857) 380-2244<br />
+              <strong>Phone:</strong> +63 (917) 123-4567<br />
               <strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM PST
             </p>
             <p>

@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import './FAQ.css';
 
 function FAQ() {
-  // State to track which FAQ item is currently open (by index)
-  // Only one FAQ can be open at a time
-  const [openIndex, setOpenIndex] = useState(null);
+  // State to track which FAQ items are currently open (array of indices)
+  // Multiple FAQs can be open at the same time
+  const [openItems, setOpenItems] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
 
@@ -45,15 +45,47 @@ function FAQ() {
     {
       question: 'How customizable are the shoes?',
       answer: 'Our custom shoes offer extensive customization options. You can customize colors, patterns, materials, overlays, and add personalized text or logos. Our design tool provides a real-time preview of your customizations. Most shoe styles can be customized on the upper, sole, and heel areas.'
+    },
+    {
+      question: 'What payment methods do you accept?',
+      answer: 'We accept a wide range of payment methods including all major credit cards (Visa, Mastercard, American Express, Discover), PayPal, Apple Pay, Google Pay, and Shop Pay. All transactions are securely processed and encrypted to protect your financial information.'
+    },
+    {
+      question: 'Can I cancel or modify my order after placing it?',
+      answer: 'You can cancel or modify your order within 24 hours of placing it by contacting our customer service team. After 24 hours, once production has begun, we are unable to make changes or cancel the order. Please review your design carefully before confirming your purchase.'
+    },
+    {
+      question: 'What is your return and refund policy?',
+      answer: 'We offer a 30-day satisfaction guarantee. If you\'re not completely satisfied with your custom shoes, you can return them within 30 days of delivery for a full refund or exchange. The shoes must be in unworn condition with all original packaging. Custom orders with personalized text or logos may have different return terms.'
+    },
+    {
+      question: 'Do you offer bulk or wholesale pricing for businesses?',
+      answer: 'Yes! We offer special pricing for bulk orders and corporate clients. Our business program includes volume discounts, dedicated account management, and priority production. Orders of 50+ pairs qualify for wholesale pricing. Contact our business team for a custom quote.'
+    },
+    {
+      question: 'What shoe sizes do you offer?',
+      answer: 'We offer a comprehensive range of sizes for men, women, and children. Men\'s sizes range from US 6-15, women\'s sizes from US 5-12, and kids\' sizes from US 10C-6Y. Half sizes are available for most styles. Wide and narrow width options are also available for select models.'
+    },
+    {
+      question: 'How do I care for my custom shoes?',
+      answer: 'To maintain the quality and longevity of your custom shoes, we recommend: cleaning with a soft, damp cloth and mild soap; avoiding machine washing or harsh chemicals; air drying at room temperature away from direct heat; and storing in a cool, dry place. Proper care will ensure your custom design stays vibrant for years.'
+    },
+    {
+      question: 'Can I see a preview before finalizing my order?',
+      answer: 'Absolutely! Our 3D customization tool provides a real-time preview of your design from multiple angles. You can rotate, zoom, and view your shoes in different lighting conditions. Before checkout, you\'ll receive a final confirmation screen showing exactly how your custom shoes will look.'
+    },
+    {
+      question: 'Do you ship internationally?',
+      answer: 'Yes, we ship to over 150 countries worldwide. International shipping times vary by destination, typically ranging from 7-21 business days depending on customs processing. Customs duties and taxes are the responsibility of the recipient. Track your order online with the provided tracking number.'
     }
   ];
 
-  // Toggle function: if clicking the same item, close it; otherwise, open the new one
+  // Toggle function: add/remove index from openItems array
   const toggleFAQ = (index) => {
-    if (openIndex === index) {
-      setOpenIndex(null); // Close if already open
+    if (openItems.includes(index)) {
+      setOpenItems(openItems.filter(i => i !== index)); // Remove if already open
     } else {
-      setOpenIndex(index); // Open the new one
+      setOpenItems([...openItems, index]); // Add to open items
     }
   };
 
@@ -73,12 +105,12 @@ function FAQ() {
           {faqData.map((item, index) => (
             <div
               key={index}
-              className={`faq__item ${openIndex === index ? 'faq__item--open' : ''}`}
+              className={`faq__item ${openItems.includes(index) ? 'faq__item--open' : ''}`}
             >
               <button
                 className="faq__question"
                 onClick={() => toggleFAQ(index)}
-                aria-expanded={openIndex === index}
+                aria-expanded={openItems.includes(index)}
               >
                 <span className="faq__question-text">{item.question}</span>
                 <span className="faq__icon" aria-hidden="true">
@@ -100,7 +132,7 @@ function FAQ() {
                 </span>
               </button>
 
-              {openIndex === index && (
+              {openItems.includes(index) && (
                 <div className="faq__answer">
                   <p>{item.answer}</p>
                 </div>
