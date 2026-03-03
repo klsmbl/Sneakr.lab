@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RefundPolicy.css';
+import Footer from '../Footer';
 
 function RefundPolicy() {
   const navigate = useNavigate();
@@ -205,6 +206,7 @@ function RefundPolicy() {
           </form>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

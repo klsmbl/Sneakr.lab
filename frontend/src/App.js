@@ -9,6 +9,7 @@ import { LandingPage } from './components/LandingPage';
 import { CustomizerPage } from './components/CustomizerPage';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
+import WhoAreWe from './pages/WhoAreWe';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/customizer" element={<CustomizerPage />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/terms" element={<TermsAndServices />} />
+        <Route path="/who-are-we" element={<WhoAreWe />} />
       </Routes>
     </Router>
   );

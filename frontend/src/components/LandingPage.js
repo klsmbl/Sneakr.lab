@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 import { AnimatedBackground } from './AnimatedBackground';
-import AboutUs from './AboutUs';
 import FAQ from '../FAQ';
 import BusinessForm from '../BusinessForm';
 import Footer from '../Footer';
@@ -54,7 +53,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      <AboutUs />
       <FAQ />
       <BusinessForm />
       <Footer />

@@ -11,13 +11,6 @@
   --dark: #1f242a;
 }
 
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100%;
-  overflow-x: hidden;
-}
-
 body {
   background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bottom));
   background-attachment: fixed;

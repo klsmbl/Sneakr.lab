@@ -2,15 +2,15 @@
 
 .terms-services {
   min-height: 100vh;
-  padding: 60px 28px 80px;
+  padding: 0;
   background: var(--bg);
   color: var(--text-main);
-  overflow-x: hidden;
 }
 
 .terms-services__container {
   max-width: 1000px;
   margin: 0 auto;
+  padding: 60px 28px 80px;
 }
 
 /* Back Button */

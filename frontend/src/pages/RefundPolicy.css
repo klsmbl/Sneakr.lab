@@ -2,15 +2,15 @@
 
 .refund-policy {
   min-height: 100vh;
-  padding: 60px 28px 80px;
+  padding: 0;
   background: var(--bg);
   color: var(--text-main);
-  overflow-x: hidden;
 }
 
 .refund-policy__container {
   max-width: 1120px;
   margin: 0 auto;
+  padding: 60px 28px 80px;
 }
 
 /* Back Button */

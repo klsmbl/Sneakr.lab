@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import './TermsAndServices.css';
+import Footer from '../Footer';
 
 function TermsAndServices() {
   const navigate = useNavigate();
@@ -575,6 +576,7 @@ function TermsAndServices() {
 
 
       </div>
+      <Footer />
     </div>
   );
 }

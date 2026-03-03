@@ -82,7 +82,7 @@ function Footer() {
               {aboutLinks.map((link, index) => (
                 <li key={index}>
                   <a 
-                    href={link === 'FAQs' ? '#faq' : link === 'Who We Are' ? '#about' : '#'} 
+                    href={link === 'FAQs' ? '#faq' : link === 'Who We Are' ? '/who-are-we' : '#'} 
                     className="footer__link"
                     onClick={(e) => {
                       if (link === 'FAQs') {
@@ -90,7 +90,7 @@ function Footer() {
                         document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
                       } else if (link === 'Who We Are') {
                         e.preventDefault();
-                        document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+                        navigate('/who-are-we');
                       } else if (link === 'Refund Policy') {
                         e.preventDefault();
                         navigate('/refund-policy');
