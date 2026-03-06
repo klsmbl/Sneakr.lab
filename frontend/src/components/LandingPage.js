@@ -5,10 +5,12 @@ import FAQ from '../FAQ';
 import BusinessForm from '../BusinessForm';
 import Footer from '../Footer';
 import { useUser } from '../context/UserContext';
+import { useSubscription } from '../context/SubscriptionContext';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { user, signOut } = useUser();
+  const { tier } = useSubscription();
 
   const handleGetStarted = () => {
     navigate('/customizer');
@@ -24,6 +26,14 @@ export function LandingPage() {
     }
   };
 
+  const handleUpgradeClick = () => {
+    if (!user) {
+      navigate('/signin');
+    } else {
+      navigate('/subscription');
+    }
+  };
+
   return (
     <div className="home">
       <AnimatedBackground />
@@ -36,10 +46,13 @@ export function LandingPage() {
           <nav className="header__nav">
             <button className="nav-link" onClick={handleGetStarted}>Design a Custom Shoe</button>
             <button className="nav-link" onClick={() => document.getElementById('business-form')?.scrollIntoView({ behavior: 'smooth' })}>Branded Business Shoes</button>
+            {user && tier === 'free' && (
+              <button className="nav-link premium-btn" onClick={handleUpgradeClick}>⭐ Upgrade to Premium</button>
+            )}
           </nav>
 
           <div className="header__icons">
-            {user && <span className="user-email">{user.email} ({user.role})</span>}
+            {user && <span className="user-email">{user.email} ({tier === 'premium' ? '⭐ Premium' : 'Free'})</span>}
             <button className="icon-button" type="button" aria-label="Cart">
               <img src="/online-shopping.png" alt="Cart" className="icon-img" />
             </button>

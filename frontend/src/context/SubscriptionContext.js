@@ -1,9 +1,11 @@
 /**
  * Sneakr.lab - DATASTALGO
- * Subscription feature gating: free vs premium
+ * Subscription feature gating: free vs premium (synced with backend)
  */
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useUser } from './UserContext';
+import { getSubscription } from '../services/api';
 
 const FREE_SAVED_DESIGNS_LIMIT = 2;
 const FREE_AI_GENERATIONS_PER_DAY = 3;
@@ -11,9 +13,35 @@ const FREE_AI_GENERATIONS_PER_DAY = 3;
 const SubscriptionContext = createContext(null);
 
 export function SubscriptionProvider({ children }) {
+  const { user, token } = useUser();
   const [tier, setTier] = useState('free');
   const [savedDesignsCount, setSavedDesignsCount] = useState(0);
   const [aiGenerationsUsedToday, setAiGenerationsUsedToday] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch subscription status from backend when user logs in
+  useEffect(() => {
+    if (user && token) {
+      loadSubscription();
+    } else {
+      setTier('free');
+      setSavedDesignsCount(0);
+      setAiGenerationsUsedToday(0);
+    }
+  }, [user, token]);
+
+  const loadSubscription = async () => {
+    try {
+      setLoading(true);
+      const subData = await getSubscription();
+      setTier(subData.tier);
+    } catch (err) {
+      console.error('Failed to load subscription:', err);
+      setTier('free');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const canSaveDesign = useCallback(() => {
     if (tier === 'premium') return true;
@@ -45,6 +73,7 @@ export function SubscriptionProvider({ children }) {
     canUseUnlimitedColors: () => tier === 'premium',
     canAccessAllModels: () => tier === 'premium',
     canDuplicateDesigns: () => tier === 'premium',
+    loading
   };
 
   return (

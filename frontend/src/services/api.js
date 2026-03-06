@@ -77,3 +77,52 @@ export async function deleteDesign(id) {
   });
   if (!res.ok && res.status !== 204) throw new Error('Failed to delete design');
 }
+
+// Subscription and Payment APIs
+export async function getSubscription() {
+  const res = await fetch(`${API_BASE}/api/subscription`, {
+    headers: getAuthHeader()
+  });
+  if (!res.ok) throw new Error('Failed to get subscription');
+  return res.json();
+}
+
+export async function createSubscriptionOrder(plan) {
+  const res = await fetch(`${API_BASE}/api/subscription/create-order`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify({ plan })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to create order' }));
+    throw new Error(err.error || 'Failed to create order');
+  }
+  return res.json();
+}
+
+export async function captureSubscriptionOrder(orderId) {
+  const res = await fetch(`${API_BASE}/api/subscription/capture-order`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify({ orderId })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to capture order' }));
+    throw new Error(err.error || 'Failed to capture order');
+  }
+  return res.json();
+}
+
+export async function getPaymentHistory() {
+  const res = await fetch(`${API_BASE}/api/payments/history`, {
+    headers: getAuthHeader()
+  });
+  if (!res.ok) throw new Error('Failed to get payment history');
+  return res.json();
+}
