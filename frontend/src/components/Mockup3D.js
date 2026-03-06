@@ -5,7 +5,7 @@
 
 import { useRef, useState, Suspense, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
+import { OrbitControls, Environment, useGLTF, Decal, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { useDesign } from '../context/DesignContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -137,7 +137,7 @@ function applyLayerColorsToScene(scene, designId, layerColors, modelId) {
   });
 }
 
-function ShoeModel({ asset, modelId, designId, layerColors, hasWatermark }) {
+function ShoeModel({ asset, modelId, designId, layerColors, logoUrl, hasWatermark }) {
   const { scene } = useGLTF(asset.url);
   const groupRef = useRef(null);
 
@@ -181,6 +181,14 @@ function ShoeModel({ asset, modelId, designId, layerColors, hasWatermark }) {
   }, [clonedScene, designId, layerColors, modelId]);
 
   const rotX = asset.rotationX ?? 0;
+  
+  // Find the mesh to apply the decal to (usually the upper)
+  let decalMesh = null;
+  clonedScene.traverse((child) => {
+    if (!decalMesh && child instanceof THREE.Mesh) {
+      decalMesh = child;
+    }
+  });
 
   return (
     <group
@@ -191,6 +199,9 @@ function ShoeModel({ asset, modelId, designId, layerColors, hasWatermark }) {
     >
       <group scale={scaleFactor}>
         <primitive object={clonedScene} />
+        {logoUrl && decalMesh && (
+          <LogoDecal mesh={decalMesh} logoUrl={logoUrl} scaleFactor={scaleFactor} />
+        )}
       </group>
       {hasWatermark && (
         <mesh position={[0, 0.15 * scaleFactor, 0.25 * scaleFactor]}>
@@ -202,7 +213,26 @@ function ShoeModel({ asset, modelId, designId, layerColors, hasWatermark }) {
   );
 }
 
-function Scene({ modelId, designId, layerColors, showWatermark }) {
+function LogoDecal({ mesh, logoUrl }) {
+  const texture = useTexture(logoUrl);
+  return (
+    <Decal
+      mesh={mesh}
+      position={[0.3, 0.4, 0.2]} // Approximate position for side logo
+      rotation={[0, 0, 0]}
+      scale={[0.3, 0.3, 0.3]}
+    >
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        polygonOffset
+        polygonOffsetFactor={-1}
+      />
+    </Decal>
+  );
+}
+
+function Scene({ modelId, designId, layerColors, logoUrl, showWatermark }) {
   const asset = getSneakerAsset(modelId);
 
   return (
@@ -222,6 +252,7 @@ function Scene({ modelId, designId, layerColors, showWatermark }) {
           modelId={modelId}
           designId={designId}
           layerColors={layerColors}
+          logoUrl={logoUrl}
           hasWatermark={showWatermark}
         />
       </Suspense>
@@ -264,6 +295,7 @@ export function Mockup3D() {
                 modelId={design.modelId}
                 designId={design.designId}
                 layerColors={design.layerColors}
+                logoUrl={design.logoUrl}
                 showWatermark={showWatermark}
               />
             </Suspense>

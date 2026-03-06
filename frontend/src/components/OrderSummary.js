@@ -36,6 +36,12 @@ export function OrderSummary() {
           <dd className="col-sm-8">{design.modelName}</dd>
           <dt className="col-sm-4">Design</dt>
           <dd className="col-sm-8">{design.designName}</dd>
+          {design.logoPrompt && (
+            <>
+              <dt className="col-sm-4">Logo</dt>
+              <dd className="col-sm-8 text-truncate">{design.logoPrompt}</dd>
+            </>
+          )}
           <dt className="col-sm-4">Colors</dt>
           <dd className="col-sm-8">
             <div className="d-flex flex-wrap gap-1">

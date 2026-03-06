@@ -4,12 +4,24 @@ import { AnimatedBackground } from './AnimatedBackground';
 import FAQ from '../FAQ';
 import BusinessForm from '../BusinessForm';
 import Footer from '../Footer';
+import { useUser } from '../context/UserContext';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { user, signOut } = useUser();
 
   const handleGetStarted = () => {
     navigate('/customizer');
+  };
+
+  const handleProfileClick = () => {
+    if (user) {
+      if (window.confirm('Do you want to sign out?')) {
+        signOut();
+      }
+    } else {
+      navigate('/signin');
+    }
   };
 
   return (
@@ -27,11 +39,12 @@ export function LandingPage() {
           </nav>
 
           <div className="header__icons">
+            {user && <span className="user-email">{user.email} ({user.role})</span>}
             <button className="icon-button" type="button" aria-label="Cart">
               <img src="/online-shopping.png" alt="Cart" className="icon-img" />
             </button>
-            <button className="icon-button" type="button" aria-label="Profile">
-              <img src="/user.png" alt="Profile" className="icon-img" />
+            <button className="icon-button" type="button" aria-label="Profile" onClick={handleProfileClick}>
+              <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'Sign Out' : 'Sign In'} />
             </button>
           </div>
         </div>
@@ -47,7 +60,7 @@ export function LandingPage() {
               where ideas become sneakers
             </p>
             <button className="hero__cta" type="button" onClick={handleGetStarted}>
-              Get Started
+              {user ? 'Continue Designing' : 'Get Started'}
             </button>
           </div>
         </div>

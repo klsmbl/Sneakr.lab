@@ -23,6 +23,8 @@ const DEFAULT_DESIGN = {
   layerColors: DEFAULT_LAYER_COLORS,
   designId: 'plain',
   designName: 'Plain',
+  logoUrl: null,
+  logoPrompt: '',
 };
 
 const DesignContext = createContext(null);
@@ -49,6 +51,10 @@ export function DesignProvider({ children }) {
     setDesignState((d) => ({ ...d, designId, designName }));
   }, []);
 
+  const setLogo = useCallback((logoUrl, logoPrompt) => {
+    setDesignState((d) => ({ ...d, logoUrl, logoPrompt }));
+  }, []);
+
   const resetDesign = useCallback(() => {
     setDesignState(DEFAULT_DESIGN);
   }, []);
@@ -59,6 +65,7 @@ export function DesignProvider({ children }) {
     setAccentColor,
     setLayerColor,
     setDesign,
+    setLogo,
     resetDesign,
   };
 

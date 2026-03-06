@@ -128,10 +128,20 @@ header.header {
 
 .header__icons {
   display: flex;
+  align-items: center;
   gap: 16px;
   flex-shrink: 0;
   margin: 0 0 0 auto !important;
   padding: 0 !important;
+}
+
+.user-email {
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  color: var(--text-sub);
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
 }
 
 .icon-button {

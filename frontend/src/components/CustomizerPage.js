@@ -2,6 +2,7 @@ import { SubscriptionProvider } from '../context/SubscriptionContext';
 import { DesignProvider } from '../context/DesignContext';
 import { SneakerSetup } from './SneakerSetup';
 import { ColorCustomizer } from './ColorCustomizer';
+import { AIHelper } from './AIHelper';
 import { Mockup3D } from './Mockup3D';
 import { SaveExport } from './SaveExport';
 import { OrderSummary } from './OrderSummary';
@@ -32,13 +33,14 @@ export function CustomizerPage() {
             </header>
             <p className="text-muted small mb-4">
               Design your sneaker with Nike-style layer customization! Customize each part's color,
-              preview in 3D, then save or export. Free users have limited access; premium unlocks all features.
+              preview in 3D, and use AI to generate your unique logo. Free users have limited access; premium unlocks all features.
             </p>
 
             <div className="row">
               <div className="col-lg-6">
                 <SneakerSetup />
                 <ColorCustomizer />
+                <AIHelper />
                 <SaveExport />
                 <OrderSummary />
               </div>

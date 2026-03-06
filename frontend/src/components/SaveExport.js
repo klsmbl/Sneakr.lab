@@ -8,9 +8,11 @@ import { useDesign } from '../context/DesignContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { FREE_SAVED_DESIGNS_LIMIT } from '../context/SubscriptionContext';
 import { saveDesign, getDesigns, getDesign } from '../services/api';
+import { useUser } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 export function SaveExport() {
-  const { design, setModel, setAccentColor, setLayerColor, setDesign } = useDesign();
+  const { design, setModel, setAccentColor, setLayerColor, setDesign, setLogo } = useDesign();
   const {
     tier,
     savedDesignsCount,
@@ -18,6 +20,8 @@ export function SaveExport() {
     incrementSavedDesigns,
     canExportHD,
   } = useSubscription();
+  const { user } = useUser();
+  const navigate = useNavigate();
 
   const [saved, setSaved] = useState(false);
   const [exported, setExported] = useState(false);
@@ -29,12 +33,20 @@ export function SaveExport() {
   const canExport = canExportHD();
 
   useEffect(() => {
-    getDesigns()
-      .then(setSavedList)
-      .catch(() => setSavedList([]));
-  }, [saved]);
+    if (user) {
+      getDesigns()
+        .then(setSavedList)
+        .catch(() => setSavedList([]));
+    } else {
+      setSavedList([]);
+    }
+  }, [saved, user]);
 
   async function handleSave() {
+    if (!user) {
+      setMessage('Please sign in to save your designs.');
+      return;
+    }
     if (!canSave) {
       setMessage(`Free users can save up to ${FREE_SAVED_DESIGNS_LIMIT} designs. Upgrade for unlimited.`);
       return;
@@ -69,6 +81,7 @@ export function SaveExport() {
         setAccentColor(d.accentColor);
       }
       setDesign(d.designId, d.designName);
+      setLogo(d.logoUrl || null, d.logoPrompt || '');
       setMessage('Design loaded.');
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Failed to load design.');
@@ -76,6 +89,10 @@ export function SaveExport() {
   }
 
   function handleExport() {
+    if (!user) {
+      setMessage('Please sign in to export your designs.');
+      return;
+    }
     if (!canExport) {
       setMessage('HD export is available for premium users.');
       return;
@@ -88,6 +105,11 @@ export function SaveExport() {
     <section className="card shadow-sm mb-4">
       <div className="card-body">
         <h2 className="h5 mb-3">4. Save & Export</h2>
+        {!user && (
+          <div className="alert alert-warning small mb-3">
+            You are not signed in. <button className="btn btn-link btn-sm p-0" onClick={() => navigate('/signin')}>Sign in</button> to save and manage your designs.
+          </div>
+        )}
         <p className="text-muted small mb-3">
           Save your design to the database or export a high-definition mockup (premium).
         </p>
@@ -96,7 +118,7 @@ export function SaveExport() {
           <button
             type="button"
             className="btn btn-outline-primary"
-            disabled={!canSave || loading}
+            disabled={(!canSave && user) || loading}
             onClick={handleSave}
           >
             {loading ? 'Saving…' : saved ? 'Saved' : 'Save design'}
@@ -104,20 +126,22 @@ export function SaveExport() {
           <button
             type="button"
             className="btn btn-outline-secondary"
-            disabled={!canExport || exported}
+            disabled={(!canExport && user) || exported}
             onClick={handleExport}
           >
             {exported ? 'Exported' : 'Export HD mockup'}
           </button>
         </div>
 
-        <p className="text-muted small mb-2">
-          {tier === 'free'
-            ? `Saved: ${savedDesignsCount} / ${FREE_SAVED_DESIGNS_LIMIT} (free). Upgrade for unlimited and HD export.`
-            : 'Unlimited saves and HD export.'}
-        </p>
+        {user && (
+          <p className="text-muted small mb-2">
+            {tier === 'free'
+              ? `Saved: ${savedDesignsCount} / ${FREE_SAVED_DESIGNS_LIMIT} (free). Upgrade for unlimited and HD export.`
+              : 'Unlimited saves and HD export.'}
+          </p>
+        )}
 
-        {savedList.length > 0 && (
+        {user && savedList.length > 0 && (
           <div className="mt-2">
             <label className="form-label small">Saved designs (from database)</label>
             <ul className="list-unstyled small">
