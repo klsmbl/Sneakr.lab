@@ -30,7 +30,15 @@ const DEFAULT_DESIGN = {
 const DesignContext = createContext(null);
 
 export function DesignProvider({ children }) {
-  const [design, setDesignState] = useState(DEFAULT_DESIGN);
+  const [design, setDesignState] = useState(() => {
+    const storedModelId = localStorage.getItem('sneakr_selected_model');
+    const storedModelName = localStorage.getItem('sneakr_selected_model_name');
+    return {
+      ...DEFAULT_DESIGN,
+      modelId: storedModelId || DEFAULT_DESIGN.modelId,
+      modelName: storedModelName || DEFAULT_DESIGN.modelName,
+    };
+  });
 
   const setModel = useCallback((modelId, modelName) => {
     setDesignState((d) => ({ ...d, modelId, modelName }));

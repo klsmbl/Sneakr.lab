@@ -7,6 +7,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';
 import { CustomizerPage } from './components/CustomizerPage';
+import { ShoeSelectionPage } from './components/ShoeSelectionPage';
+import { ConfirmSelectionPage } from './components/ConfirmSelectionPage';
 import { SignIn } from './components/SignIn';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { UserProvider } from './context/UserContext';
@@ -25,6 +27,8 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/customizer" element={<CustomizerPage />} />
+            <Route path="/choose-shoe" element={<ShoeSelectionPage />} />
+            <Route path="/confirm-shoe" element={<ConfirmSelectionPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />

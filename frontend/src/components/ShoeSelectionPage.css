@@ -1,0 +1,199 @@
+/* ShoeSelectionPage.css */
+
+.selection-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+.selection-page__header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.selection-page__title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 14px;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.selection-page__subtitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  color: #c5c1b8;
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* Grid */
+.shoe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+/* Card */
+.shoe-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(229, 225, 219, 0.09);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.shoe-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(229, 225, 219, 0.22);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.shoe-card--locked {
+  opacity: 0.6;
+}
+
+.shoe-card__image {
+  height: 200px;
+  background: linear-gradient(
+    135deg,
+    rgba(27, 33, 43, 0.95) 0%,
+    rgba(44, 52, 68, 0.95) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid rgba(229, 225, 219, 0.06);
+}
+
+.shoe-card__icon {
+  font-size: 76px;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.shoe-card:hover .shoe-card__icon {
+  transform: scale(1.1) translateY(-6px);
+}
+
+.shoe-card__premium-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+/* Card body */
+.shoe-card__body {
+  padding: 20px;
+}
+
+.shoe-card__category {
+  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(197, 193, 184, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+}
+
+.shoe-card__name {
+  font-family: 'Cinzel', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 7px 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.shoe-card__desc {
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  color: #c5c1b8;
+  line-height: 1.65;
+  margin: 0 0 18px;
+  font-weight: 400;
+}
+
+.shoe-card__btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 1px solid rgba(229, 225, 219, 0.28);
+  border-radius: 8px;
+  background: transparent;
+  color: #e5e1db;
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.shoe-card__btn:hover {
+  background: #e5e1db;
+  color: #1f242a;
+  border-color: #e5e1db;
+  box-shadow: 0 4px 14px rgba(229, 225, 219, 0.15);
+}
+
+.shoe-card__btn--locked {
+  border-color: rgba(102, 126, 234, 0.35);
+  color: rgba(160, 150, 240, 0.85);
+}
+
+.shoe-card__btn--locked:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .shoe-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .shoe-card__image {
+    height: 140px;
+  }
+
+  .shoe-card__icon {
+    font-size: 52px;
+  }
+
+  .shoe-card__body {
+    padding: 14px;
+  }
+
+  .shoe-card__name {
+    font-size: 14px;
+  }
+
+  .shoe-card__desc {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .shoe-grid {
+    grid-template-columns: 1fr;
+  }
+}

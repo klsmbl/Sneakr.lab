@@ -13,7 +13,7 @@ export function LandingPage() {
   const { tier } = useSubscription();
 
   const handleGetStarted = () => {
-    navigate('/customizer');
+    navigate('/choose-shoe');
   };
 
   const handleProfileClick = () => {
