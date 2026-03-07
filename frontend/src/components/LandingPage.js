@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import './LandingPage.css';
 import { AnimatedBackground } from './AnimatedBackground';
 import FAQ from '../FAQ';
@@ -9,8 +10,17 @@ import { useSubscription } from '../context/SubscriptionContext';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut } = useUser();
   const { tier } = useSubscription();
+
+  useEffect(() => {
+    if (location.state?.scrollTo === 'faq') {
+      setTimeout(() => {
+        document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
+  }, [location.state]);
 
   const handleGetStarted = () => {
     navigate('/choose-shoe');

@@ -87,7 +87,11 @@ function Footer() {
                     onClick={(e) => {
                       if (link === 'FAQs') {
                         e.preventDefault();
-                        document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                        if (window.location.pathname === '/') {
+                          document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          navigate('/', { state: { scrollTo: 'faq' } });
+                        }
                       } else if (link === 'Who We Are') {
                         e.preventDefault();
                         navigate('/who-are-we');

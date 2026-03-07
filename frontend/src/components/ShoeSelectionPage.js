@@ -3,6 +3,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { SNEAKER_MODELS } from '../data/sneakerOptions';
 import { StepIndicator } from './StepIndicator';
 import { AnimatedBackground } from './AnimatedBackground';
+import Footer from '../Footer';
 import './LandingPage.css';
 import './ShoeSelectionPage.css';
 
@@ -73,6 +74,7 @@ export function ShoeSelectionPage() {
           })}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
