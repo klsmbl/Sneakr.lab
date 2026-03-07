@@ -529,3 +529,219 @@ header.header {
     padding: 60px 20px 80px !important;
   }
 }
+
+/* ── How To Section ─────────────────────────────────────── */
+.howto {
+  width: 100%;
+  padding: 220px 24px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+.howto__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.howto__head {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.howto__title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(26px, 3.5vw, 44px);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 14px;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.howto__subtitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  color: #c5c1b8;
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* Grid */
+.howto__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+/* Card */
+.howto__card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(229, 225, 219, 0.08);
+  border-radius: 20px;
+  padding: 0 0 36px;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.howto__card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(229, 225, 219, 0.2);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.35);
+}
+
+/* Mockup image */
+.howto__card-mockup {
+  width: 100%;
+  background: #f0f3f8;
+  border-bottom: 1px solid rgba(229, 225, 219, 0.08);
+  padding: 20px 20px 0;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.howto__card-mockup-img {
+  width: 100%;
+  display: block;
+  border-radius: 8px 8px 0 0;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.howto__card:hover .howto__card-mockup-img {
+  transform: scale(1.04) translateY(-4px);
+}
+
+.howto__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 0 28px;
+}
+
+.howto__card-num {
+  font-family: 'Cinzel', serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: rgba(229, 225, 219, 0.1);
+  line-height: 1;
+  letter-spacing: 1px;
+  transition: color 0.35s ease;
+}
+
+.howto__card:hover .howto__card-num {
+  color: rgba(229, 225, 219, 0.2);
+}
+
+.howto__card-icon {
+  font-size: 44px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.howto__card:hover .howto__card-icon {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+.howto__card-title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px;
+  padding: 0 28px;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+}
+
+.howto__card-list {
+  list-style: none;
+  padding: 0 28px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.howto__card-list li {
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  color: #c5c1b8;
+  line-height: 1.6;
+  font-weight: 400;
+  padding-left: 16px;
+  position: relative;
+}
+
+.howto__card-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(229, 225, 219, 0.35);
+}
+
+/* CTA */
+.howto__cta-wrap {
+  text-align: center;
+  margin-top: 56px;
+}
+
+.howto__cta {
+  padding: 14px 40px;
+  border: 1px solid rgba(229, 225, 219, 0.25);
+  border-radius: 12px;
+  background: transparent;
+  color: #e5e1db;
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: background 0.28s ease, color 0.28s ease,
+    border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.howto__cta:hover {
+  background: #e5e1db;
+  color: #1f242a;
+  border-color: #e5e1db;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .howto__grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .howto {
+    padding: 72px 16px 60px;
+  }
+
+  .howto__card {
+    padding: 0 0 28px;
+  }
+
+  .howto__card-top,
+  .howto__card-title,
+  .howto__card-list {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .howto__card-title {
+    font-size: 14px;
+  }
+}

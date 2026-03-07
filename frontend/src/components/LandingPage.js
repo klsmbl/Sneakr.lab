@@ -8,6 +8,78 @@ import Footer from '../Footer';
 import { useUser } from '../context/UserContext';
 import { useSubscription } from '../context/SubscriptionContext';
 
+const HOW_TO_STEPS = [
+  {
+    num: '01',
+    title: 'Step 1: Choose Your Shoe Style',
+    bullets: [
+      'Browse multiple customizable shoe models',
+      'Select the base shoe you want to design',
+      'Click Customize to begin designing',
+    ],
+  },
+  {
+    num: '02',
+    title: 'Step 2: Design Your Custom Shoes',
+    bullets: [
+      'Change colors and materials',
+      'Add logos, text, or graphics',
+      'Adjust and position design elements easily',
+    ],
+  },
+  {
+    num: '03',
+    title: 'Step 3: Order Your Shoes',
+    bullets: [
+      'Review your custom design',
+      'Select your size and quantity',
+      'Proceed to checkout and place your order',
+    ],
+  },
+];
+
+function HowToSection({ onGetStarted }) {
+  return (
+    <section className="howto">
+      <div className="howto__inner">
+        <div className="howto__head">
+          <h2 className="howto__title">How to Customize Your Own Shoes</h2>
+          <p className="howto__subtitle">Customize your shoes in three simple steps.</p>
+        </div>
+
+        <div className="howto__grid">
+          {HOW_TO_STEPS.map((step) => (
+            <div key={step.num} className="howto__card">
+              <div className="howto__card-mockup">
+                <img
+                  src="/placeholder-ui.svg"
+                  alt="UI mockup"
+                  className="howto__card-mockup-img"
+                />
+              </div>
+              <div className="howto__card-top">
+                <span className="howto__card-num">{step.num}</span>
+              </div>
+              <h3 className="howto__card-title">{step.title}</h3>
+              <ul className="howto__card-list">
+                {step.bullets.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="howto__cta-wrap">
+          <button className="howto__cta" onClick={onGetStarted}>
+            Start Designing Your Shoes →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,6 +161,7 @@ export function LandingPage() {
         </div>
       </section>
 
+      <HowToSection onGetStarted={handleGetStarted} />
       <FAQ />
       <BusinessForm />
       <Footer />
