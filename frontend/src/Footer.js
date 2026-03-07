@@ -47,7 +47,6 @@ function Footer() {
     'Contact Us',
     'Who We Are',
     'FAQs',
-    'Careers',
     'Meet The Team',
     'News',
     'Refund Policy',

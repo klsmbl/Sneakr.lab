@@ -162,6 +162,12 @@ export function LandingPage() {
       </section>
 
       <HowToSection onGetStarted={handleGetStarted} />
+
+      <div className="concept-divider">
+        <h2 className="concept-divider__heading">From Concept to Custom Footwear</h2>
+        <p className="concept-divider__sub">See how we turn blank shoes into fully custom branded footwear.</p>
+      </div>
+
       <FAQ />
       <BusinessForm />
       <Footer />
