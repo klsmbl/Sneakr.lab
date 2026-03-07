@@ -73,7 +73,7 @@ export function CustomizerPage() {
                 </div>
               </div>
 
-              <SaveExport />
+              <SaveExport captureFunction={captureFunction} />
               <OrderSummary />
             </div>
             <div className="col-lg-6">

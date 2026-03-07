@@ -6,6 +6,7 @@ from .models import FAQ
 import json
 import base64
 import os
+import requests
 from pathlib import Path
 
 try:
@@ -37,7 +38,7 @@ def getFAQs(request):
 def virtualTryOn(request):
     """
     Virtual Try-On endpoint using Google Vertex AI
-    Expects JSON with base64 encoded person_image and shoe_image
+    Uses the official API format: personImage + productImages with nested bytesBase64Encoded
     """
     if not GOOGLE_CLOUD_AVAILABLE:
         return JsonResponse({
@@ -80,62 +81,112 @@ def virtualTryOn(request):
                 'error': 'Project ID not found in service-account.json'
             }, status=500)
         
-        # Initialize Vertex AI client
-        aiplatform.init(
-            project=project_id,
-            location='us-central1',
-            credentials=credentials
-        )
+        # Clean base64 data (remove data URL prefix if present)
+        person_image_b64_clean = person_image_b64.split(',')[-1] if ',' in person_image_b64 else person_image_b64
+        shoe_image_b64_clean = shoe_image_b64.split(',')[-1] if ',' in shoe_image_b64 else shoe_image_b64
         
-        # Decode base64 images
-        person_image_bytes = base64.b64decode(person_image_b64.split(',')[-1] if ',' in person_image_b64 else person_image_b64)
-        shoe_image_bytes = base64.b64decode(shoe_image_b64.split(',')[-1] if ',' in shoe_image_b64 else shoe_image_b64)
+        print("[INFO] Virtual Try-On request - using Vertex AI")
+        print(f"[INFO] Project ID: {project_id}")
+        print(f"[INFO] Person image length: {len(person_image_b64_clean)}")
+        print(f"[INFO] Shoe image length: {len(shoe_image_b64_clean)}")
         
-        # Call Vertex AI Virtual Try-On API
-        # Note: As of now, you'll need to use the REST API or specific client library
-        # The exact implementation depends on the API structure
-        # This is a placeholder for the actual API call
+        # Get access token from credentials
+        from google.auth.transport.requests import Request
+        credentials.refresh(Request())
+        access_token = credentials.token
+        print(f"[DEBUG] Got access token: {access_token[:20]}...")
         
-        from google.cloud import aiplatform_v1
-        from google.protobuf import struct_pb2
+        # QUESTION: Is this the correct endpoint and model name?
+        # Based on the documentation you showed, virtual-try-on-001 should be available
+        url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
         
-        client = aiplatform_v1.PredictionServiceClient(credentials=credentials)
-        endpoint = f"projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
         
-        # Prepare instances
-        instance = struct_pb2.Struct()
-        instance.update({
-            "personImage": {
-                "bytesBase64Encoded": base64.b64encode(person_image_bytes).decode('utf-8')
-            },
-            "garmentImage": {
-                "bytesBase64Encoded": base64.b64encode(shoe_image_bytes).decode('utf-8')
-            }
-        })
+        print(f"[DEBUG] API Endpoint: {url}")
         
-        instances = [instance]
+        # CORRECT PAYLOAD FORMAT from the official documentation:
+        # The API expects "personImage" and "productImages" (not "person_image" and "garment_image")
+        # Images must be nested under "image.bytesBase64Encoded"
+        payload = {
+            "instances": [
+                {
+                    "personImage": {
+                        "image": {
+                            "bytesBase64Encoded": person_image_b64_clean
+                        }
+                    },
+                    "productImages": [
+                        {
+                            "image": {
+                                "bytesBase64Encoded": shoe_image_b64_clean
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
         
-        # Make prediction request
-        response = client.predict(
-            endpoint=endpoint,
-            instances=instances
-        )
+        print(f"[INFO] Using CORRECT API format: personImage + productImages")
         
-        # Extract result image
-        if response.predictions:
-            result_image_b64 = response.predictions[0].get('bytesBase64Encoded', '')
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            print(f"[DEBUG] Response Status: {response.status_code}")
+            print(f"[DEBUG] Response Headers: {dict(response.headers)}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                print("[SUCCESS] Virtual Try-On API call successful!")
+                print(f"[DEBUG] Response keys: {result.keys()}")
+                
+                if "predictions" in result and result["predictions"]:
+                    prediction = result["predictions"][0]
+                    print(f"[DEBUG] Prediction keys: {prediction.keys()}")
+                    
+                    # According to the official docs, response format is:
+                    # {"bytesBase64Encoded": "BASE64_IMG_BYTES", "mimeType": "image/png"}
+                    if "bytesBase64Encoded" in prediction:
+                        result_image_b64 = prediction["bytesBase64Encoded"]
+                        mime_type = prediction.get("mimeType", "image/png")
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'result_image': f"data:{mime_type};base64,{result_image_b64}",
+                            'api_used': 'vertex-ai-virtual-try-on'
+                        })
+                    else:
+                        print(f"[ERROR] Expected 'bytesBase64Encoded' in prediction, got: {prediction.keys()}")
+                        return JsonResponse({
+                            'error': 'API succeeded but no bytesBase64Encoded found in response',
+                            'debug_info': str(prediction)
+                        }, status=500)
+                else:
+                    print("[ERROR] No predictions in API response")
+                    return JsonResponse({
+                        'error': 'API succeeded but no predictions found in response',
+                        'debug_info': str(result)
+                    }, status=500)
+            else:
+                error_text = response.text
+                print(f"[ERROR] API Error {response.status_code}: {error_text}")
+                
+                return JsonResponse({
+                    'error': f'Vertex AI Virtual Try-On API Error: {error_text}',
+                    'status_code': response.status_code
+                }, status=response.status_code)
+                
+        except requests.exceptions.RequestException as e:
+            print(f"[ERROR] Request failed: {str(e)}")
             return JsonResponse({
-                'success': True,
-                'result_image': f"data:image/png;base64,{result_image_b64}"
-            })
-        else:
-            return JsonResponse({
-                'error': 'No predictions returned from API'
+                'error': f'Network error: {str(e)}'
             }, status=500)
             
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
+        print("[ERROR] Virtual Try-On failed:", str(e))
         return JsonResponse({
             'error': f'Virtual Try-On failed: {str(e)}'
         }, status=500)

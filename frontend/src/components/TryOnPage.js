@@ -147,10 +147,10 @@ export function TryOnPage() {
                       role="status"
                       aria-hidden="true"
                     ></span>
-                    Processing...
+                    Generating with AI...
                   </>
                 ) : (
-                  '✨ Try On Your Shoe'
+                  '🤖 Try On with Vertex AI'
                 )}
               </button>
 
@@ -174,22 +174,31 @@ export function TryOnPage() {
                     <span className="visually-hidden">Loading...</span>
                   </div>
                   <p className="text-muted">
-                    Creating your virtual try-on... This may take a few seconds.
+                    <strong>Generating Virtual Try-On with Google Vertex AI...</strong>
+                  </p>
+                  <p className="small text-muted">
+                    This may take 30-60 seconds as we process your images with AI.
                   </p>
                 </div>
               )}
 
               {resultImage && !loading && (
                 <div className="result-preview">
+                  <div className="alert alert-success mb-3">
+                    <i className="bi bi-check-circle me-2"></i>
+                    <strong>Success!</strong> Your Virtual Try-On has been generated using Google Vertex AI.
+                  </div>
+                  
                   <img
                     src={resultImage}
-                    alt="Try-on result"
+                    alt="Virtual Try-On result"
                     className="img-fluid rounded"
                   />
+                  
                   <div className="mt-3">
                     <a
                       href={resultImage}
-                      download="tryon-result.png"
+                      download="virtual-tryon-result.png"
                       className="btn btn-success w-100"
                     >
                       💾 Download Result

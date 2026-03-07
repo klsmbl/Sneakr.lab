@@ -1,8 +1,8 @@
 /**
- * Sneakr.lab - API client for designs (PostgreSQL backend)
+ * Sneakr.lab - API client for designs (Django backend)
  */
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export async function saveDesign(design) {
   const res = await fetch(`${API_BASE}/api/designs`, {

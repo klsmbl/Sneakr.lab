@@ -9,7 +9,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { FREE_SAVED_DESIGNS_LIMIT } from '../context/SubscriptionContext';
 import { saveDesign, getDesigns, getDesign } from '../services/api';
 
-export function SaveExport() {
+export function SaveExport({ captureFunction }) {
   const { design, setModel, setAccentColor, setLayerColor, setDesign } = useDesign();
   const {
     tier,
@@ -24,6 +24,7 @@ export function SaveExport() {
   const [message, setMessage] = useState(null);
   const [savedList, setSavedList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
 
   const canSave = canSaveDesign();
   const canExport = canExportHD();
@@ -39,6 +40,14 @@ export function SaveExport() {
       setMessage(`Free users can save up to ${FREE_SAVED_DESIGNS_LIMIT} designs. Upgrade for unlimited.`);
       return;
     }
+    
+    // Capture the current shoe image
+    let shoeImageData = null;
+    if (captureFunction) {
+      shoeImageData = captureFunction();
+      setCapturedImage(shoeImageData);
+    }
+    
     setMessage(null);
     setLoading(true);
     try {
@@ -80,8 +89,31 @@ export function SaveExport() {
       setMessage('HD export is available for premium users.');
       return;
     }
-    setExported(true);
-    setMessage('HD mockup export started (concept only; no file in this demo).');
+    
+    // Capture the current shoe image for export
+    if (captureFunction) {
+      const shoeImageData = captureFunction();
+      if (shoeImageData) {
+        setCapturedImage(shoeImageData);
+        downloadImage(shoeImageData, `sneakr-design-${design.modelName}-${Date.now()}.png`);
+        setExported(true);
+        setMessage('HD mockup exported and downloaded.');
+      } else {
+        setMessage('Failed to capture shoe image for export.');
+      }
+    } else {
+      setExported(true);
+      setMessage('HD mockup export started (concept only; no file in this demo).');
+    }
+  }
+
+  function downloadImage(dataURL, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   return (
@@ -109,7 +141,31 @@ export function SaveExport() {
           >
             {exported ? 'Exported' : 'Export HD mockup'}
           </button>
+          {capturedImage && (
+            <button
+              type="button"
+              className="btn btn-outline-success"
+              onClick={() => downloadImage(capturedImage, `sneakr-design-${design.modelName}-${Date.now()}.png`)}
+            >
+              📱 Download Image
+            </button>
+          )}
         </div>
+
+        {/* Display captured shoe image */}
+        {capturedImage && (
+          <div className="mt-3 mb-3">
+            <label className="form-label small">Your Custom Shoe Design</label>
+            <div className="border rounded p-2 bg-light">
+              <img 
+                src={capturedImage} 
+                alt="Custom Shoe Design" 
+                className="img-fluid rounded"
+                style={{ maxHeight: '200px', width: 'auto' }}
+              />
+            </div>
+          </div>
+        )}
 
         <p className="text-muted small mb-2">
           {tier === 'free'
