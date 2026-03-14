@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './BusinessForm.css';
 
 const EXAMPLE_CARDS = [
-  { label: 'Corporate Edition', tag: 'Brand Launch' },
-  { label: 'Team Collection', tag: 'Sports & Events' },
+  { label: 'Corporate Edition', tag: 'Brand Launch', imageSrc: '/adblueshoe.webp', imageAlt: 'Blue branded sneaker', imageOnly: true },
+  { label: 'Team Collection', tag: 'Sports & Events', imageSrc: '/adyellowshoe.webp', imageAlt: 'Yellow branded sneaker', imageOnly: true },
   { label: 'Limited Series', tag: 'Promotional' },
 ];
 
@@ -84,12 +84,18 @@ function BusinessForm() {
             {/* Three small example cards */}
             <div className="bf__cards">
               {EXAMPLE_CARDS.map((card) => (
-                <div key={card.label} className="bf__card">
-                  <div className="bf__card-thumb" aria-hidden="true">👟</div>
-                  <div className="bf__card-info">
-                    <span className="bf__card-name">{card.label}</span>
-                    <span className="bf__card-tag">{card.tag}</span>
-                  </div>
+                <div key={card.label} className={`bf__card${card.imageOnly ? ' bf__card--image-only' : ''}`}>
+                  {card.imageSrc ? (
+                    <img className="bf__card-image" src={card.imageSrc} alt={card.imageAlt} />
+                  ) : (
+                    <div className="bf__card-thumb" aria-hidden="true">👟</div>
+                  )}
+                  {!card.imageOnly && (
+                    <div className="bf__card-info">
+                      <span className="bf__card-name">{card.label}</span>
+                      <span className="bf__card-tag">{card.tag}</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
