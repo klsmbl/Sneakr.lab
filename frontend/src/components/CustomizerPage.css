@@ -1,0 +1,9 @@
+.customizer-shell {
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+.customizer-header {
+  border-color: rgba(229, 225, 219, 0.16) !important;
+}

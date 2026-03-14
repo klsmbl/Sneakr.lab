@@ -13,6 +13,7 @@ import { SignIn } from './components/SignIn';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { UserProvider } from './context/UserContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
+import { CartProvider } from './context/CartContext';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
 import WhoAreWe from './pages/WhoAreWe';
@@ -23,19 +24,21 @@ function App() {
   return (
     <UserProvider>
       <SubscriptionProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/customizer" element={<CustomizerPage />} />
-            <Route path="/choose-shoe" element={<ShoeSelectionPage />} />
-            <Route path="/confirm-shoe" element={<ConfirmSelectionPage />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/subscription" element={<SubscriptionPage />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/terms" element={<TermsAndServices />} />
-            <Route path="/who-are-we" element={<WhoAreWe />} />
-          </Routes>
-        </Router>
+        <CartProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/customizer" element={<CustomizerPage />} />
+              <Route path="/choose-shoe" element={<ShoeSelectionPage />} />
+              <Route path="/confirm-shoe" element={<ConfirmSelectionPage />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
+              <Route path="/terms" element={<TermsAndServices />} />
+              <Route path="/who-are-we" element={<WhoAreWe />} />
+            </Routes>
+          </Router>
+        </CartProvider>
       </SubscriptionProvider>
     </UserProvider>
   );

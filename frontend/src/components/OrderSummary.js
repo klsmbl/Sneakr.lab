@@ -6,103 +6,120 @@
 import { useState } from 'react';
 import { useDesign } from '../context/DesignContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useCart } from '../context/CartContext';
 
 const UNIT_PRICE = 120;
 const DISCOUNT_PERCENT_PREMIUM = 10;
+const SIZE_OPTIONS = ['US 7', 'US 8', 'US 9', 'US 10', 'US 11', 'US 12'];
+
+function formatColorSummary(layerColors) {
+  return Object.entries(layerColors)
+    .slice(0, 4)
+    .map(([part, color]) => `${part}: ${color}`)
+    .join(' · ');
+}
 
 export function OrderSummary() {
   const { design } = useDesign();
   const { tier } = useSubscription();
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState('US 9');
+  const [showToast, setShowToast] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   const discountPercent = tier === 'premium' ? DISCOUNT_PERCENT_PREMIUM : 0;
   const subtotal = quantity * UNIT_PRICE;
   const discountAmount = (subtotal * discountPercent) / 100;
   const total = subtotal - discountAmount;
 
-  const isReadOnly = tier === 'free';
+  const customizationSummary = formatColorSummary(design.layerColors);
+
+  const handleAddToCart = () => {
+    addItem({
+      modelId: design.modelId,
+      modelName: design.modelName,
+      designId: design.designId,
+      designName: design.designName,
+      layerColors: { ...design.layerColors },
+      logoPrompt: design.logoPrompt,
+      size,
+      quantity,
+      unitPrice: total / quantity,
+    });
+
+    setIsAdded(true);
+    setShowToast(true);
+
+    window.setTimeout(() => setIsAdded(false), 380);
+    window.setTimeout(() => setShowToast(false), 2400);
+  };
+
+  const increaseQty = () => setQuantity((q) => Math.min(10, q + 1));
+  const decreaseQty = () => setQuantity((q) => Math.max(1, q - 1));
 
   return (
     <section className="card shadow-sm mb-4">
-      <div className="card-body">
-        <h2 className="h5 mb-3">Order Summary (Concept)</h2>
-        <p className="text-muted small mb-3">
-          Design details, quantity, size, and computed total. Read-only for free users.
+      <div className="card-body order-module">
+        <h2 className="h5 mb-3">Custom Product</h2>
+        <div className="order-module__preview" aria-hidden="true">
+          <div className="order-module__preview-shoe">👟</div>
+        </div>
+
+        <h3 className="order-module__name">{design.modelName}</h3>
+        <p className="order-module__summary">
+          {design.designName} · {customizationSummary}
+          {design.logoPrompt ? ` · logo: ${design.logoPrompt}` : ''}
         </p>
 
-        <dl className="row small mb-2">
-          <dt className="col-sm-4">Model</dt>
-          <dd className="col-sm-8">{design.modelName}</dd>
-          <dt className="col-sm-4">Design</dt>
-          <dd className="col-sm-8">{design.designName}</dd>
-          {design.logoPrompt && (
-            <>
-              <dt className="col-sm-4">Logo</dt>
-              <dd className="col-sm-8 text-truncate">{design.logoPrompt}</dd>
-            </>
-          )}
-          <dt className="col-sm-4">Colors</dt>
-          <dd className="col-sm-8">
-            <div className="d-flex flex-wrap gap-1">
-              {Object.entries(design.layerColors).slice(0, 5).map(([part, color]) => (
-                <span
-                  key={part}
-                  className="d-inline-block rounded border"
-                  style={{ width: 20, height: 20, backgroundColor: color }}
-                  title={`${part}: ${color}`}
-                />
-              ))}
-            </div>
-          </dd>
-        </dl>
-
-        <div className="mb-2">
-          <label className="form-label small">Quantity</label>
-          <input
-            type="number"
-            className="form-control form-control-sm"
-            min={1}
-            max={10}
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-            readOnly={isReadOnly}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label small">Size</label>
+        <div className="order-module__row">
+          <label className="order-module__label" htmlFor="shoe-size-select">Size</label>
           <select
+            id="shoe-size-select"
             className="form-select form-select-sm"
             value={size}
             onChange={(e) => setSize(e.target.value)}
-            disabled={isReadOnly}
           >
-            {['US 7', 'US 8', 'US 9', 'US 10', 'US 11'].map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {SIZE_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </div>
 
-        <hr />
-        <div className="small">
-          <div className="d-flex justify-content-between">
-            <span>Subtotal ({quantity} × ${UNIT_PRICE})</span>
-            <span>${subtotal.toFixed(2)}</span>
-          </div>
-          {discountPercent > 0 && (
-            <div className="d-flex justify-content-between text-success">
-              <span>Discount ({discountPercent}%)</span>
-              <span>-${discountAmount.toFixed(2)}</span>
-            </div>
-          )}
-          <div className="d-flex justify-content-between fw-bold mt-1">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+        <div className="order-module__row">
+          <span className="order-module__label">Quantity</span>
+          <div className="order-module__qty">
+            <button type="button" onClick={decreaseQty} aria-label="Decrease quantity">-</button>
+            <span>{quantity}</span>
+            <button type="button" onClick={increaseQty} aria-label="Increase quantity">+</button>
           </div>
         </div>
-        {isReadOnly && (
-          <p className="text-muted small mt-2 mb-0">Upgrade to premium to edit and proceed.</p>
-        )}
+
+        <div className="order-module__price">
+          <div>
+            <span>Price</span>
+            <strong>${total.toFixed(2)}</strong>
+          </div>
+          {discountPercent > 0 && <small>Premium discount saved ${discountAmount.toFixed(2)}</small>}
+        </div>
+
+        <button
+          type="button"
+          className={`order-module__add-btn ${isAdded ? 'is-added' : ''}`}
+          onClick={handleAddToCart}
+        >
+          <span className="order-module__cart-icon" aria-hidden="true">🛒</span>
+          Add to Cart
+        </button>
+
+        <div className={`order-module__toast ${showToast ? 'is-visible' : ''}`} role="status">
+          Custom shoes added to your cart.
+        </div>
+
+        <div className="order-module__meta">
+          <span>Subtotal ({quantity} x ${UNIT_PRICE})</span>
+          <span>${subtotal.toFixed(2)}</span>
+        </div>
       </div>
     </section>
   );

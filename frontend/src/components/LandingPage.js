@@ -7,6 +7,8 @@ import BusinessForm from '../BusinessForm';
 import Footer from '../Footer';
 import { useUser } from '../context/UserContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useCart } from '../context/CartContext';
+import { CartPanel } from './CartPanel';
 
 const HOW_TO_STEPS = [
   {
@@ -85,6 +87,7 @@ export function LandingPage() {
   const location = useLocation();
   const { user, signOut } = useUser();
   const { tier } = useSubscription();
+  const { itemCount, openCart } = useCart();
 
   useEffect(() => {
     if (location.state?.scrollTo === 'faq') {
@@ -135,8 +138,9 @@ export function LandingPage() {
 
           <div className="header__icons">
             {user && <span className="user-email">{user.email} ({tier === 'premium' ? '⭐ Premium' : 'Free'})</span>}
-            <button className="icon-button" type="button" aria-label="Cart">
+            <button className="icon-button icon-button--cart" type="button" aria-label="Cart" onClick={openCart}>
               <img src="/online-shopping.png" alt="Cart" className="icon-img" />
+              {itemCount > 0 && <span className="icon-button__badge">{itemCount}</span>}
             </button>
             <button className="icon-button" type="button" aria-label="Profile" onClick={handleProfileClick}>
               <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'Sign Out' : 'Sign In'} />
@@ -171,6 +175,7 @@ export function LandingPage() {
       <FAQ />
       <BusinessForm />
       <Footer />
+      <CartPanel />
     </div>
   );
 }
