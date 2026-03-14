@@ -89,17 +89,17 @@ function Footer() {
                         if (window.location.pathname === '/') {
                           document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
                         } else {
-                          navigate('/', { state: { scrollTo: 'faq' } });
+                          navigate('/', { state: { scrollTo: 'faq', showFooterLoader: true } });
                         }
                       } else if (link === 'Who We Are') {
                         e.preventDefault();
-                        navigate('/who-are-we');
+                        navigate('/who-are-we', { state: { showFooterLoader: true } });
                       } else if (link === 'Refund Policy') {
                         e.preventDefault();
-                        navigate('/refund-policy');
+                        navigate('/refund-policy', { state: { showFooterLoader: true } });
                       } else if (link === 'Terms of Services') {
                         e.preventDefault();
-                        navigate('/terms');
+                        navigate('/terms', { state: { showFooterLoader: true } });
                       }
                     }}
                   >

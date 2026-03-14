@@ -4,7 +4,8 @@
  * React JS, Bootstrap, Three.js, subscription-based feature gating
  */
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { LandingPage } from './components/LandingPage';
 import { CustomizerPage } from './components/CustomizerPage';
 import { ShoeSelectionPage } from './components/ShoeSelectionPage';
@@ -20,23 +21,62 @@ import WhoAreWe from './pages/WhoAreWe';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
+function AppRoutes() {
+  const location = useLocation();
+  const [isRouteLoading, setIsRouteLoading] = useState(false);
+
+  useEffect(() => {
+    const shouldShowLoader = Boolean(location.state?.showFooterLoader);
+
+    if (!shouldShowLoader) {
+      setIsRouteLoading(false);
+      return;
+    }
+
+    setIsRouteLoading(true);
+    const timer = setTimeout(() => {
+      setIsRouteLoading(false);
+    }, 520);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname, location.state]);
+
+  return (
+    <>
+      {isRouteLoading && (
+        <div className="route-loader" role="status" aria-live="polite" aria-label="Loading page">
+          <div className="route-loader__brand-wrap" aria-hidden="true">
+            <div className="route-loader__brand-mark">SL</div>
+            <p className="route-loader__wordmark">SNEAKR.LAB</p>
+          </div>
+          <div className="route-loader__progress" aria-hidden="true">
+            <span className="route-loader__progress-bar" />
+          </div>
+        </div>
+      )}
+
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/customizer" element={<CustomizerPage />} />
+        <Route path="/choose-shoe" element={<ShoeSelectionPage />} />
+        <Route path="/confirm-shoe" element={<ConfirmSelectionPage />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/subscription" element={<SubscriptionPage />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/terms" element={<TermsAndServices />} />
+        <Route path="/who-are-we" element={<WhoAreWe />} />
+      </Routes>
+    </>
+  );
+}
+
 function App() {
   return (
     <UserProvider>
       <SubscriptionProvider>
         <CartProvider>
           <Router>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/customizer" element={<CustomizerPage />} />
-              <Route path="/choose-shoe" element={<ShoeSelectionPage />} />
-              <Route path="/confirm-shoe" element={<ConfirmSelectionPage />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/subscription" element={<SubscriptionPage />} />
-              <Route path="/refund-policy" element={<RefundPolicy />} />
-              <Route path="/terms" element={<TermsAndServices />} />
-              <Route path="/who-are-we" element={<WhoAreWe />} />
-            </Routes>
+            <AppRoutes />
           </Router>
         </CartProvider>
       </SubscriptionProvider>

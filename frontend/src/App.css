@@ -18,6 +18,93 @@ body {
   font-family: 'Manrope', sans-serif;
 }
 
+.route-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: radial-gradient(circle at 50% 34%, rgba(32, 58, 102, 0.45) 0%, rgba(10, 18, 32, 0.96) 62%);
+  backdrop-filter: blur(4px);
+}
+
+.route-loader__brand-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: route-loader-pulse 1.9s ease-in-out infinite;
+}
+
+.route-loader__brand-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid rgba(229, 225, 219, 0.34);
+  display: grid;
+  place-items: center;
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(229, 225, 219, 0.96);
+  letter-spacing: 1px;
+  background: rgba(18, 32, 58, 0.42);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.route-loader__wordmark {
+  margin: 0;
+  color: rgba(229, 225, 219, 0.9);
+  font-size: 14px;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+}
+
+.route-loader__progress {
+  width: min(260px, 64vw);
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(229, 225, 219, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+
+.route-loader__progress-bar {
+  position: absolute;
+  top: 0;
+  left: -38%;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(229, 225, 219, 0.1) 0%, rgba(229, 225, 219, 0.95) 55%, rgba(229, 225, 219, 0.1) 100%);
+  animation: route-loader-progress 1.3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes route-loader-pulse {
+  0%, 100% {
+    opacity: 0.86;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes route-loader-progress {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(370%);
+  }
+}
+
 .home {
   min-height: 100vh;
   padding: 32px 28px 48px;
