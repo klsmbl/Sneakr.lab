@@ -17,7 +17,7 @@ export function SignIn() {
   const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState('');
-  const [showTermsPreview, setShowTermsPreview] = useState(false);
+  const [legalPreviewType, setLegalPreviewType] = useState(null);
 
   // Login fields
   const [loginEmail, setLoginEmail] = useState('');
@@ -171,10 +171,22 @@ export function SignIn() {
                 className="auth-terms-link"
                 onClick={(event) => {
                   event.preventDefault();
-                  setShowTermsPreview(true);
+                  setLegalPreviewType('terms');
                 }}
               >
                 Terms and Services
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/privacy-policy"
+                state={{ showFooterLoader: true }}
+                className="auth-terms-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setLegalPreviewType('privacy');
+                }}
+              >
+                Privacy Policy
               </Link>
             </p>
           </form>
@@ -259,39 +271,51 @@ export function SignIn() {
                 className="auth-terms-link"
                 onClick={(event) => {
                   event.preventDefault();
-                  setShowTermsPreview(true);
+                  setLegalPreviewType('terms');
                 }}
               >
                 Terms and Services
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/privacy-policy"
+                state={{ showFooterLoader: true }}
+                className="auth-terms-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setLegalPreviewType('privacy');
+                }}
+              >
+                Privacy Policy
               </Link>
             </p>
           </form>
         </div>
 
-        {showTermsPreview && createPortal(
+        {legalPreviewType && createPortal(
           <div
             className="auth-terms-preview-overlay"
-            onClick={() => setShowTermsPreview(false)}
+            onClick={() => setLegalPreviewType(null)}
             role="presentation"
           >
             <div
               className="auth-terms-preview"
               role="dialog"
-              aria-label="Terms and Services preview"
+              aria-label={legalPreviewType === 'privacy' ? 'Privacy Policy preview' : 'Terms and Services preview'}
               onClick={(event) => event.stopPropagation()}
             >
               <button
                 type="button"
                 className="auth-terms-preview__close"
-                onClick={() => setShowTermsPreview(false)}
+                onClick={() => setLegalPreviewType(null)}
                 aria-label="Close Terms preview"
               >
                 ×
               </button>
-              <h3>Terms and Services</h3>
+              <h3>{legalPreviewType === 'privacy' ? 'Privacy Policy' : 'Terms and Services'}</h3>
               <iframe
-                title="Terms and Services"
-                src="/terms?embed=1"
+                title={legalPreviewType === 'privacy' ? 'Privacy Policy' : 'Terms and Services'}
+                src={legalPreviewType === 'privacy' ? '/privacy-policy?embed=1' : '/terms?embed=1'}
                 className="auth-terms-preview__frame"
               />
             </div>
