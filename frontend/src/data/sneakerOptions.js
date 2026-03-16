@@ -4,7 +4,33 @@
  */
 
 export const SNEAKER_MODELS = [
-  { id: 'classic-1', name: 'Classic Low', premiumOnly: false },
+  { 
+    id: 'airforce', 
+    name: 'AirForce 1', 
+    premiumOnly: false,
+    colorZones: [
+      { id: 'upper', label: 'Main', description: 'Leather panels & quarter' },
+      { id: 'midsole', label: 'Midsole', description: 'Middle sole cushioning' },
+      { id: 'sole', label: 'Outsole', description: 'Bottom rubber sole' },
+      { id: 'accent', label: 'Swoosh', description: 'Nike branding' },
+      { id: 'laces', label: 'Laces', description: 'Lace system' },
+    ]
+  },
+  { 
+    id: 'airforce-new', 
+    name: 'AirForce 1 Premium', 
+    premiumOnly: true,
+    colorZones: [
+      { id: 'upper', label: 'Main', description: 'Leather panels & quarter' },
+      { id: 'midsole', label: 'Midsole', description: 'Middle sole cushioning' },
+      { id: 'sole', label: 'Outsole', description: 'Bottom rubber sole' },
+      { id: 'accent', label: 'Swoosh', description: 'Nike & Air branding' },
+      { id: 'midsoleRim', label: 'Trim', description: 'Accent trim & foxing' },
+      { id: 'stitching', label: 'Stitching', description: 'Decorative stitching' },
+      { id: 'heel', label: 'Heel Tab', description: 'Heel counter' },
+      { id: 'laces', label: 'Laces', description: 'Lace system' },
+    ]
+  },
 ];
 
 export const FREE_COLORS = ['#000000', '#FFFFFF', '#C41E3A', '#0066B3', '#228B22'];

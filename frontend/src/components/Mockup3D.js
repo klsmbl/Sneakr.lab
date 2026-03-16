@@ -1,6 +1,7 @@
 /**
  * Sneakr.lab - DATASTALGO
  * 3D sneaker mockup with rotation and real-time design preview
+ * Updated: Mesh-based coloring only
  */
 
 import { useRef, useState, Suspense, useEffect, useMemo } from 'react';
@@ -15,84 +16,122 @@ import { getDesignTexture, getDesignOverrides } from '../utils/designTextures';
 /** Target size so every model fits the viewport the same way */
 const NORMALIZED_SIZE = 2;
 
-function applyLayerColorsToScene(scene, designId, layerColors, modelId) {
+function applyLayerColorsToScene(scene, designId, layerColors) {
+  console.log('🎨 === COLOR APPLICATION START ===');
+  console.log('Layer Colors:', layerColors);
+  
   const texture = getDesignTexture(designId, layerColors.accent);
   const overrides = getDesignOverrides(designId, layerColors.accent);
-
-  // Calculate bounding box for the entire scene
-  const sceneBBox = new THREE.Box3().setFromObject(scene);
-  const sceneMin = sceneBBox.min.y;
-  const sceneMax = sceneBBox.max.y;
-  const sceneHeight = sceneMax - sceneMin;
   
   scene.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return;
     
-    const geometry = child.geometry;
+    // Skip Object_2 mesh
+    if (child.name && child.name.toLowerCase().includes('object_2')) {
+      console.log(`⏭️ Skipping mesh: "${child.name}"`);
+      return;
+    }
     
-    // Apply vertex colors based on Y position for gradient effect
-    if (geometry.attributes.position) {
-      const positions = geometry.attributes.position;
-      const colors = new Float32Array(positions.count * 3);
-      
-      const soleColor = new THREE.Color(layerColors.sole);
-      const upperColor = new THREE.Color(layerColors.upper);
-      const accentColor = new THREE.Color(layerColors.accent);
-      
-      // Model-specific coloring profiles
-      let soleEnd = 0.25;
-      let soleBlendZone = 0.35;
-      let upperEnd = 0.8;
-      let accentBlendZone = 0.9;
-      
-      if (modelId === 'classic-1') {
-        // Classic Low: More defined sole, larger upper area
-        soleEnd = 0.20;
-        soleBlendZone = 0.28;
-        upperEnd = 0.82;
-        accentBlendZone = 0.92;
-      } else if (modelId === 'new-balance-574') {
-        // New Balance 574: Chunkier sole, more accent on collar
-        soleEnd = 0.30;
-        soleBlendZone = 0.40;
-        upperEnd = 0.75;
-        accentBlendZone = 0.85;
-      }
-      
-      // Apply colors per vertex based on height
-      for (let i = 0; i < positions.count; i++) {
-        const y = positions.getY(i);
-        const relativeHeight = sceneHeight > 0 
-          ? (y - sceneMin) / sceneHeight 
-          : 0.5;
+    // Log mesh names for debugging
+    console.log(`\n📦 Found mesh: "${child.name || 'unnamed'}"`);
+    
+    const meshName = (child.name || '').toLowerCase();
+    let targetColor = null;
+    let zoneName = '';
+    
+    // Map mesh names to color zones - ORDER MATTERS!
+    // Check most specific patterns first based on Blender hierarchy
+    
+    // Stitching zone: FIRST - STICHES group meshes (Plane003-012 with underscores)
+    if (meshName.includes('stitch') || 
+        meshName.startsWith('plane003') || 
+        meshName.startsWith('plane005') || 
+        meshName.startsWith('plane006') || 
+        meshName.startsWith('plane007') || 
+        meshName.startsWith('plane008') || 
+        meshName.startsWith('plane009') || 
+        meshName.startsWith('plane010') || 
+        meshName.startsWith('plane011') || 
+        meshName.startsWith('plane012')) {
+      targetColor = layerColors.stitching;
+      zoneName = 'STITCHING';
+    }
+    // Trim zone: Check for _rim or trim BEFORE midsole (to catch Midsole_rim)
+    else if (meshName.includes('_rim') || 
+             meshName.includes('trim') || 
+             meshName.includes('fine leather')) {
+      targetColor = layerColors.midsoleRim;
+      zoneName = 'TRIM';
+    }
+    // Swoosh zone: Nike Logo, Air Logo - check BEFORE Main (to catch Air_Logomain)
+    else if (meshName.includes('logo') || 
+             meshName.includes('nike') ||
+             meshName.includes('air_') ||
+             meshName.includes('swoosh')) {
+      targetColor = layerColors.accent;
+      zoneName = 'SWOOSH';
+    }
+    // Outsole zone: OUTSOLE, OUTSOLE2, Plane_Material.010_0 (specific)
+    else if (meshName.includes('outsole') || 
+        (meshName.includes('plane') && meshName.includes('material') && meshName.includes('010_0'))) {
+      targetColor = layerColors.sole;
+      zoneName = 'OUTSOLE';
+    }
+    // Midsole zone: Midsole, MID SOLE (but not _rim)
+    else if ((meshName.includes('mid') && meshName.includes('sole')) || 
+             (meshName.includes('midsole') && !meshName.includes('_rim'))) {
+      targetColor = layerColors.midsole;
+      zoneName = 'MIDSOLE';
+    }
+    // Heel zone: Heel
+    else if (meshName.includes('heel')) {
+      targetColor = layerColors.heel;
+      zoneName = 'HEEL TAB';
+    } 
+    // Laces zone: Lace Main
+    else if (meshName.includes('lace')) {
+      targetColor = layerColors.laces;
+      zoneName = 'LACES';
+    } 
+    // Main zone: Main, Inside Fabric, TOE BOX
+    else if (meshName.includes('main') || 
+             meshName.includes('inside fabric') || 
+             meshName.includes('toe box') ||
+             meshName.includes('quarter')) {
+      targetColor = layerColors.upper;
+      zoneName = 'MAIN';
+    } 
+    // Upper zone fallback
+    else if (meshName.includes('upper')) {
+      targetColor = layerColors.upper;
+      zoneName = 'UPPER';
+    } 
+    // Final default: unnamed objects go to upper color
+    else {
+      targetColor = layerColors.upper;
+      zoneName = 'UPPER (default)';
+    }
+    
+    console.log(`  ✅ Zone: ${zoneName}`);
+    console.log(`  🎨 Color: ${targetColor}`);
+    
+    if (targetColor) {
+      const geometry = child.geometry;
+      if (geometry.attributes.position) {
+        const positions = geometry.attributes.position;
+        const colors = new Float32Array(positions.count * 3);
+        const color = new THREE.Color(targetColor);
         
-        let color;
-        if (relativeHeight < soleEnd) {
-          // Bottom zone = pure sole color
-          color = soleColor;
-        } else if (relativeHeight < soleBlendZone) {
-          // Transition zone = blend sole to upper
-          const blend = (relativeHeight - soleEnd) / (soleBlendZone - soleEnd);
-          color = new THREE.Color().lerpColors(soleColor, upperColor, blend);
-        } else if (relativeHeight < upperEnd) {
-          // Middle zone = upper color
-          color = upperColor;
-        } else if (relativeHeight < accentBlendZone) {
-          // Transition zone = blend upper to accent
-          const blend = (relativeHeight - upperEnd) / (accentBlendZone - upperEnd);
-          color = new THREE.Color().lerpColors(upperColor, accentColor, blend);
-        } else {
-          // Top zone = accent color
-          color = accentColor;
+        // Apply uniform color to all vertices
+        for (let i = 0; i < positions.count; i++) {
+          colors[i * 3] = color.r;
+          colors[i * 3 + 1] = color.g;
+          colors[i * 3 + 2] = color.b;
         }
         
-        colors[i * 3] = color.r;
-        colors[i * 3 + 1] = color.g;
-        colors[i * 3 + 2] = color.b;
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.attributes.color.needsUpdate = true;
       }
-      
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      geometry.attributes.color.needsUpdate = true;
     }
     
     // Handle both single material and material arrays
@@ -177,8 +216,8 @@ function ShoeModel({ asset, modelId, designId, layerColors, logoUrl, hasWatermar
       }
     });
     
-    applyLayerColorsToScene(clonedScene, designId, layerColors, modelId);
-  }, [clonedScene, designId, layerColors, modelId]);
+    applyLayerColorsToScene(clonedScene, designId, layerColors);
+  }, [clonedScene, designId, layerColors]);
 
   const rotX = asset.rotationX ?? 0;
   
@@ -262,12 +301,29 @@ function Scene({ modelId, designId, layerColors, logoUrl, showWatermark }) {
   );
 }
 
-export function Mockup3D() {
+export function Mockup3D({ onCaptureReady }) {
   const { design } = useDesign();
   const { canRemoveWatermark } = useSubscription();
-  const showWatermark = !canRemoveWatermark();
+  const showWatermark = false;
   const containerRef = useRef(null);
+  const canvasRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Expose capture function via callback
+  useEffect(() => {
+    if (onCaptureReady && canvasRef.current) {
+      const captureImage = () => {
+        if (canvasRef.current) {
+          const canvas = canvasRef.current.querySelector('canvas');
+          if (canvas) {
+            return canvas.toDataURL('image/png');
+          }
+        }
+        return null;
+      };
+      onCaptureReady(captureImage);
+    }
+  }, [onCaptureReady]);
 
   return (
     <section className="card shadow-sm mb-4">
@@ -278,7 +334,10 @@ export function Mockup3D() {
         </p>
 
         <div
-          ref={containerRef}
+          ref={(el) => {
+            containerRef.current = el;
+            canvasRef.current = el;
+          }}
           className="rounded overflow-hidden bg-dark d-flex align-items-center justify-content-center"
           style={{ height: 320 }}
           onPointerDown={() => setIsDragging(true)}
@@ -287,7 +346,7 @@ export function Mockup3D() {
         >
           <Canvas
             camera={{ position: [1.8, 1, 1.8], fov: 42 }}
-            gl={{ antialias: true }}
+            gl={{ antialias: true, preserveDrawingBuffer: true }}
             style={{ width: '100%', height: '100%', cursor: isDragging ? 'grabbing' : 'grab' }}
           >
             <Suspense fallback={null} key={design.modelId}>
@@ -311,3 +370,5 @@ export function Mockup3D() {
     </section>
   );
 }
+
+

@@ -8,11 +8,27 @@ import { SaveExport } from './SaveExport';
 import { OrderSummary } from './OrderSummary';
 import { SubscriptionTierToggle } from './SubscriptionTierToggle';
 import { useNavigate } from 'react-router-dom';
-import Footer from '../Footer';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function CustomizerPage() {
   const navigate = useNavigate();
+  const [captureFunction, setCaptureFunction] = useState(null);
+
+  const handleCaptureReady = useCallback((captureFunc) => {
+    setCaptureFunction(() => captureFunc);
+  }, []);
+
+  const handleTryOnClick = () => {
+    if (captureFunction) {
+      const shoeImageData = captureFunction();
+      if (shoeImageData) {
+        localStorage.setItem('shoe_image', shoeImageData);
+        navigate('/tryon');
+      } else {
+        alert('Failed to capture shoe image. Please try again.');
+      }
+    }
+  };
 
   return (
     <SubscriptionProvider>
@@ -36,18 +52,17 @@ export function CustomizerPage() {
               preview in 3D, and use AI to generate your unique logo. Free users have limited access; premium unlocks all features.
             </p>
 
-            <div className="row">
-              <div className="col-lg-6">
-                <SneakerSetup />
-                <ColorCustomizer />
-                <AIHelper />
-                <SaveExport />
-                <OrderSummary />
-              </div>
-              <div className="col-lg-6">
-                <Mockup3D />
-              </div>
+          <div className="row">
+            <div className="col-lg-6">
+              <SneakerSetup />
+              <ColorCustomizer />
+              <SaveExport />
+              <OrderSummary />
             </div>
+            <div className="col-lg-6">
+              <Mockup3D />
+            </div>
+          </div>
 
           </div>
           <Footer />

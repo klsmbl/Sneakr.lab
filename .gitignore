@@ -142,3 +142,16 @@ public/models/*.gltf
 *.db
 *.db-shm
 *.db-wal
+
+# Google Cloud Service Account (DO NOT COMMIT)
+service-account.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.venv/
+venv/
+ENV/
+env/

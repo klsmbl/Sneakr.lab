@@ -19,22 +19,22 @@ export function SneakerSetup() {
       <div className="card-body">
         <h2 className="h5 mb-3">👟 Sneaker Setup</h2>
         <p className="text-muted small mb-3">
-          Currently featuring the Classic Low sneaker. Choose a design pattern below!
+          Select your sneaker model to customize!
         </p>
 
         <div className="mb-0">
-          <label className="form-label">Design Pattern</label>
+          <label className="form-label">Shoe Model</label>
           <select
             className="form-select"
-            value={design.designId}
+            value={design.modelId}
             onChange={(e) => {
-              const d = DESIGNS.find((x) => x.id === e.target.value);
-              if (d) setDesign(d.id, d.name);
+              const m = SNEAKER_MODELS.find((x) => x.id === e.target.value);
+              if (m) setModel(m.id, m.name);
             }}
           >
-            {designOptions.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} {d.premiumOnly ? ' (Premium)' : ''}
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
               </option>
             ))}
           </select>
