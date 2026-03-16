@@ -1,21 +1,11 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import './Footer.css';
 
 function Footer() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isVisible, setIsVisible] = useState(false);
   const footerRef = useRef(null);
-
-  const handleBackNavigation = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate('/');
-  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -206,11 +196,6 @@ function Footer() {
 
         {/* Footer Bottom - Copyright */}
         <div className="footer__bottom">
-          {location.pathname !== '/' && (
-            <button type="button" className="footer__back-button" onClick={handleBackNavigation}>
-              ← Back
-            </button>
-          )}
           <p className="footer__copyright">
             © 2026, Sneakr.lab. All Rights Reserved
           </p>

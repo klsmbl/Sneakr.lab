@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Blog.css';
 import Footer from '../Footer';
@@ -16,10 +16,23 @@ const BLOG_ITEMS = [
 
 function Blog() {
   const navigate = useNavigate();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleNewsletterSubmit = (event) => {
+    event.preventDefault();
+    if (!newsletterEmail.trim()) {
+      setNewsletterStatus('Please enter your email address.');
+      return;
+    }
+
+    setNewsletterStatus('Thanks. You are now subscribed to our latest news updates.');
+    setNewsletterEmail('');
+  };
 
   return (
     <div className="blog-page">
@@ -32,11 +45,31 @@ function Blog() {
           >
             ← Back to Home
           </button>
-          <p className="blog-hero__eyebrow">INSIGHTS</p>
-          <h1 className="blog-hero__title">Blog</h1>
-          <p className="blog-hero__subtitle">
-            Guides, tips, and updates about custom sneakers, sizing, and design.
+          <p className="blog-hero__eyebrow">LATEST RELEASE NOTES</p>
+        </div>
+      </section>
+
+      <section className="blog-news" aria-label="News newsletter signup">
+        <div className="blog-news__content">
+          <h2 className="blog-news__title">News</h2>
+          <p className="blog-news__subtitle">
+            Get access to our latest drops, product updates, and limited release alerts.
           </p>
+          <form className="blog-news__form" onSubmit={handleNewsletterSubmit}>
+            <input
+              type="email"
+              className="blog-news__input"
+              placeholder="E-mail"
+              value={newsletterEmail}
+              onChange={(event) => setNewsletterEmail(event.target.value)}
+              aria-label="Newsletter email"
+              required
+            />
+            <button type="submit" className="blog-news__submit">
+              Submit
+            </button>
+          </form>
+          {newsletterStatus ? <p className="blog-news__status">{newsletterStatus}</p> : null}
         </div>
       </section>
 
