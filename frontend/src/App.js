@@ -18,6 +18,8 @@ import { CartProvider } from './context/CartContext';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
 import WhoAreWe from './pages/WhoAreWe';
+import Blog from './pages/Blog';
+import BlogArticle from './pages/BlogArticle';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -65,6 +67,8 @@ function AppRoutes() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/terms" element={<TermsAndServices />} />
         <Route path="/who-are-we" element={<WhoAreWe />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/how-to-measure-shoe-size" element={<BlogArticle />} />
       </Routes>
     </>
   );

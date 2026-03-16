@@ -48,7 +48,7 @@ function Footer() {
     'Who We Are',
     'FAQs',
     'Meet The Team',
-    'News',
+    'Blog',
     'Refund Policy',
     'Terms of Services'
   ];
@@ -100,6 +100,9 @@ function Footer() {
                       } else if (link === 'Terms of Services') {
                         e.preventDefault();
                         navigate('/terms', { state: { showFooterLoader: true } });
+                      } else if (link === 'Blog') {
+                        e.preventDefault();
+                        navigate('/blog', { state: { showFooterLoader: true } });
                       }
                     }}
                   >
