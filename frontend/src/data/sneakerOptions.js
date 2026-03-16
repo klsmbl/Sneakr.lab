@@ -3,7 +3,40 @@
  * Sneaker models, colors, and design options
  */
 
+const STANDARD_COLOR_ZONES = [
+  { id: 'upper', label: 'Main', description: 'Upper and quarter panels' },
+  { id: 'midsole', label: 'Midsole', description: 'Middle sole cushioning' },
+  { id: 'sole', label: 'Outsole', description: 'Bottom rubber sole' },
+  { id: 'accent', label: 'Accent', description: 'Branding and detail accents' },
+  { id: 'laces', label: 'Laces', description: 'Lace system' },
+];
+
+const PREMIUM_COLOR_ZONES = [
+  ...STANDARD_COLOR_ZONES,
+  { id: 'midsoleRim', label: 'Trim', description: 'Accent trim and foxing' },
+  { id: 'stitching', label: 'Stitching', description: 'Decorative stitching' },
+  { id: 'heel', label: 'Heel Tab', description: 'Heel counter' },
+];
+
 export const SNEAKER_MODELS = [
+  {
+    id: 'airforce',
+    name: 'AirForce 1',
+    description: 'Iconic streetwear silhouette with timeless style.',
+    category: 'Classic',
+    icon: '👟',
+    premiumOnly: false,
+    colorZones: STANDARD_COLOR_ZONES,
+  },
+  {
+    id: 'airforce-new',
+    name: 'AirForce 1 Premium',
+    description: 'Enhanced AirForce build with richer detail zones for customization.',
+    category: 'Classic',
+    icon: '⭐',
+    premiumOnly: true,
+    colorZones: PREMIUM_COLOR_ZONES,
+  },
   {
     id: 'classic-1',
     name: 'Classic Low',
@@ -11,6 +44,7 @@ export const SNEAKER_MODELS = [
     category: 'Classic',
     icon: '👟',
     premiumOnly: false,
+    colorZones: STANDARD_COLOR_ZONES,
   },
   {
     id: 'runner-1',
@@ -19,6 +53,7 @@ export const SNEAKER_MODELS = [
     category: 'Sport',
     icon: '🏃',
     premiumOnly: false,
+    colorZones: STANDARD_COLOR_ZONES,
   },
   {
     id: 'court-1',
@@ -27,6 +62,7 @@ export const SNEAKER_MODELS = [
     category: 'Classic',
     icon: '🎾',
     premiumOnly: false,
+    colorZones: STANDARD_COLOR_ZONES,
   },
   {
     id: 'lifestyle-1',
@@ -35,6 +71,7 @@ export const SNEAKER_MODELS = [
     category: 'Lifestyle',
     icon: '✨',
     premiumOnly: false,
+    colorZones: STANDARD_COLOR_ZONES,
   },
   {
     id: 'high-top-1',
@@ -43,6 +80,7 @@ export const SNEAKER_MODELS = [
     category: 'Street',
     icon: '🥾',
     premiumOnly: true,
+    colorZones: PREMIUM_COLOR_ZONES,
   },
   {
     id: 'street-1',
@@ -51,6 +89,7 @@ export const SNEAKER_MODELS = [
     category: 'Street',
     icon: '🏙️',
     premiumOnly: true,
+    colorZones: PREMIUM_COLOR_ZONES,
   },
   {
     id: 'retro-1',
@@ -59,6 +98,7 @@ export const SNEAKER_MODELS = [
     category: 'Retro',
     icon: '🕹️',
     premiumOnly: true,
+    colorZones: PREMIUM_COLOR_ZONES,
   },
   {
     id: 'slip-on-1',
@@ -67,6 +107,7 @@ export const SNEAKER_MODELS = [
     category: 'Lifestyle',
     icon: '🥿',
     premiumOnly: true,
+    colorZones: PREMIUM_COLOR_ZONES,
   },
 ];
 

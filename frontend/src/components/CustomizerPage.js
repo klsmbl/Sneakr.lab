@@ -9,11 +9,29 @@ import { SubscriptionTierToggle } from './SubscriptionTierToggle';
 import { CartPanel } from './CartPanel';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../Footer';
+import { useState, useCallback } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './CustomizerPage.css';
 
 export function CustomizerPage() {
   const navigate = useNavigate();
+  const [captureFunction, setCaptureFunction] = useState(null);
+
+  const handleCaptureReady = useCallback((captureFunc) => {
+    setCaptureFunction(() => captureFunc);
+  }, []);
+
+  const handleTryOnClick = () => {
+    if (captureFunction) {
+      const shoeImageData = captureFunction();
+      if (shoeImageData) {
+        localStorage.setItem('shoe_image', shoeImageData);
+        navigate('/tryon');
+      } else {
+        alert('Failed to capture shoe image. Please try again.');
+      }
+    }
+  };
 
   return (
     <DesignProvider>
@@ -45,10 +63,29 @@ export function CustomizerPage() {
               <ColorCustomizer />
               <AIHelper />
               <SaveExport />
+
+              <div className="card shadow-sm mb-4">
+                <div className="card-body">
+                  <h5 className="h6 mb-3">✨ Virtual Try-On</h5>
+                  <p className="text-muted small mb-3">
+                    See how your custom shoe looks on you!
+                  </p>
+                  <button
+                    className="btn btn-primary w-100"
+                    onClick={handleTryOnClick}
+                    disabled={!captureFunction}
+                  >
+                    👟 Try On Your Shoe
+                  </button>
+                </div>
+              </div>
+
+              <SaveExport captureFunction={captureFunction} />
+              <AIHelper />
               <OrderSummary />
             </div>
             <div className="col-lg-6">
-              <Mockup3D />
+              <Mockup3D onCaptureReady={handleCaptureReady} />
             </div>
           </div>
 

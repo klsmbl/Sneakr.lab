@@ -3,31 +3,41 @@
  * Nike-style color customization
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDesign } from '../context/DesignContext';
 import { useSubscription } from '../context/SubscriptionContext';
-import { FREE_COLORS, PREMIUM_COLORS } from '../data/sneakerOptions';
-
-const COLOR_ZONES = [
-  { id: 'upper', label: 'Upper', description: 'Main body and sides' },
-  { id: 'sole', label: 'Sole', description: 'Bottom and midsole' },
-  { id: 'accent', label: 'Accents', description: 'Details and highlights' },
-];
+import { FREE_COLORS, PREMIUM_COLORS, SNEAKER_MODELS } from '../data/sneakerOptions';
 
 export function ColorCustomizer() {
   const { design, setLayerColor } = useDesign();
   const { canUseUnlimitedColors } = useSubscription();
   const [selectedZone, setSelectedZone] = useState('upper');
 
+  // Get color zones for current model
+  const currentModel = SNEAKER_MODELS.find(m => m.id === design.modelId);
+  const COLOR_ZONES = currentModel?.colorZones || [];
+
+  // Reset selected zone if it doesn't exist on new model
+  useEffect(() => {
+    const zoneExists = COLOR_ZONES.find(z => z.id === selectedZone);
+    if (!zoneExists && COLOR_ZONES.length > 0) {
+      setSelectedZone(COLOR_ZONES[0].id);
+    }
+  }, [design.modelId, COLOR_ZONES, selectedZone]);
+
   const colors = canUseUnlimitedColors() ? PREMIUM_COLORS : FREE_COLORS;
   const selectedZoneColor = design.layerColors[selectedZone];
+
+  if (!currentModel || COLOR_ZONES.length === 0) {
+    return null; // Don't render if no model selected
+  }
 
   return (
     <section className="card shadow-sm mb-4">
       <div className="card-body">
         <h2 className="h5 mb-3">🎨 Color Customization</h2>
         <p className="text-muted small mb-3">
-          Choose colors for different zones of your sneaker. Colors are applied intelligently to work with any shoe model!
+          Customize {COLOR_ZONES.length} different zones on your {currentModel.name}!
         </p>
 
         {/* Quick Color Preview */}
@@ -64,7 +74,7 @@ export function ColorCustomizer() {
               const zoneColor = design.layerColors[zone.id];
               
               return (
-                <div key={zone.id} className="col-12 col-md-4">
+                <div key={zone.id} className="col-12 col-sm-6 col-lg-4">
                   <button
                     type="button"
                     className={`btn w-100 text-start ${

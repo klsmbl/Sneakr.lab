@@ -8,17 +8,20 @@ import { createContext, useContext, useState, useCallback } from 'react';
 const DEFAULT_LAYER_COLORS = {
   upper: '#FFFFFF',
   sole: '#FFFFFF',
+  midsole: '#FFFFFF',
+  midsoleRim: '#FFFFFF',
   laces: '#FFFFFF',
   toe: '#FFFFFF',
   heel: '#FFFFFF',
   tongue: '#FFFFFF',
   swoosh: '#FFFFFF',
   accent: '#FFFFFF',
+  stitching: '#FFFFFF',
 };
 
 const DEFAULT_DESIGN = {
-  modelId: 'classic-1',
-  modelName: 'Classic Low',
+  modelId: 'airforce',
+  modelName: 'AirForce 1',
   accentColor: '#FFFFFF',
   layerColors: DEFAULT_LAYER_COLORS,
   designId: 'plain',
