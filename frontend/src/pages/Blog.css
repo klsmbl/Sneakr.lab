@@ -20,6 +20,25 @@
   color: rgba(229, 225, 219, 0.7);
 }
 
+.blog-hero__back {
+  border: 1px solid rgba(229, 225, 219, 0.28);
+  background: rgba(18, 28, 42, 0.55);
+  color: var(--text-main);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.blog-hero__back:hover {
+  transform: translateY(-1px);
+  background: rgba(36, 48, 70, 0.72);
+  border-color: rgba(229, 225, 219, 0.45);
+}
+
 .blog-hero__title {
   margin: 0;
   font-size: clamp(38px, 6vw, 68px);

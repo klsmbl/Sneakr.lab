@@ -1,0 +1,215 @@
+.contact-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bottom));
+  color: var(--text-main);
+}
+
+.contact-hero {
+  padding: 110px 24px 44px;
+}
+
+.contact-hero__content {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.contact-hero__eyebrow {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(229, 225, 219, 0.72);
+}
+
+.contact-hero__title {
+  margin: 0;
+  font-size: clamp(38px, 6vw, 66px);
+  line-height: 1;
+}
+
+.contact-hero__subtitle {
+  margin: 14px 0;
+  color: var(--text-main);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 600;
+}
+
+.contact-hero__desc {
+  margin: 0 0 10px;
+  max-width: 860px;
+  color: var(--text-sub);
+  line-height: 1.75;
+  font-size: 15px;
+}
+
+.contact-content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 6px 24px 20px;
+}
+
+.contact-section {
+  margin-bottom: 28px;
+}
+
+.contact-section__title {
+  margin: 0 0 16px;
+  font-size: clamp(24px, 3vw, 34px);
+  color: var(--text-main);
+}
+
+.contact-help-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.contact-help-card {
+  border-radius: 16px;
+  border: 1px solid rgba(229, 225, 219, 0.14);
+  background: linear-gradient(180deg, rgba(50, 62, 84, 0.84), rgba(35, 44, 62, 0.9));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  padding: 20px;
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.contact-help-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(229, 225, 219, 0.24);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.33);
+}
+
+.contact-help-card h4 {
+  margin: 0 0 10px;
+  color: var(--text-main);
+  font-size: 20px;
+}
+
+.contact-help-card p {
+  margin: 0;
+  color: var(--text-sub);
+  line-height: 1.72;
+}
+
+.contact-grid-section {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+}
+
+.contact-panel {
+  border-radius: 18px;
+  border: 1px solid rgba(229, 225, 219, 0.14);
+  background: linear-gradient(180deg, rgba(46, 58, 80, 0.88), rgba(31, 41, 59, 0.9));
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.27);
+  padding: 24px;
+}
+
+.contact-panel__subtitle {
+  margin: 0 0 16px;
+  color: var(--text-sub);
+  line-height: 1.72;
+}
+
+.contact-form {
+  display: grid;
+  gap: 10px;
+}
+
+.contact-form label {
+  font-size: 13px;
+  color: var(--text-main);
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(229, 225, 219, 0.2);
+  background: rgba(17, 27, 43, 0.78);
+  color: var(--text-main);
+  padding: 11px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: rgba(229, 225, 219, 0.5);
+  box-shadow: 0 0 0 3px rgba(229, 225, 219, 0.14);
+}
+
+.contact-submit {
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #1c2430;
+  background: linear-gradient(120deg, #d9d4cc, #e5e1db);
+  cursor: pointer;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.contact-submit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.contact-status {
+  margin: 8px 0 0;
+  color: #d9d4cc;
+  font-size: 13px;
+}
+
+.contact-panel--info p {
+  margin: 0 0 10px;
+  color: var(--text-sub);
+  line-height: 1.72;
+}
+
+.contact-info__label {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.contact-info__note {
+  margin-top: 16px !important;
+  padding-top: 12px;
+  border-top: 1px solid rgba(229, 225, 219, 0.14);
+}
+
+@media (max-width: 980px) {
+  .contact-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-grid-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-hero {
+    padding: 92px 20px 32px;
+  }
+
+  .contact-content {
+    padding: 6px 20px 10px;
+  }
+
+  .contact-panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-hero {
+    padding: 84px 16px 28px;
+  }
+
+  .contact-content {
+    padding: 4px 16px 8px;
+  }
+}

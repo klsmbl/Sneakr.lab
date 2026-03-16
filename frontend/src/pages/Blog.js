@@ -25,6 +25,13 @@ function Blog() {
     <div className="blog-page">
       <section className="blog-hero">
         <div className="blog-hero__content">
+          <button
+            type="button"
+            className="blog-hero__back"
+            onClick={() => navigate('/')}
+          >
+            ← Back to Home
+          </button>
           <p className="blog-hero__eyebrow">INSIGHTS</p>
           <h1 className="blog-hero__title">Blog</h1>
           <p className="blog-hero__subtitle">

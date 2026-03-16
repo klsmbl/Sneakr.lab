@@ -7,6 +7,15 @@ function Footer() {
   const [isVisible, setIsVisible] = useState(false);
   const footerRef = useRef(null);
 
+  const handleBackNavigation = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/');
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -103,6 +112,9 @@ function Footer() {
                       } else if (link === 'Blog') {
                         e.preventDefault();
                         navigate('/blog', { state: { showFooterLoader: true } });
+                      } else if (link === 'Contact Us') {
+                        e.preventDefault();
+                        navigate('/contact-us', { state: { showFooterLoader: true } });
                       }
                     }}
                   >
@@ -123,7 +135,7 @@ function Footer() {
               </p>
               <p className="footer__contact-item">
                 <span className="footer__label">Email:</span>
-                <span className="footer__value">Team@sneakrlab.com</span>
+                <span className="footer__value">team.sneakrlab@gmail.com</span>
               </p>
               <p className="footer__contact-item">
                 <span className="footer__label">Business Address:</span>
@@ -193,6 +205,9 @@ function Footer() {
 
         {/* Footer Bottom - Copyright */}
         <div className="footer__bottom">
+          <button type="button" className="footer__back-button" onClick={handleBackNavigation}>
+            ← Back
+          </button>
           <p className="footer__copyright">
             © 2026, Sneakr.lab. All Rights Reserved
           </p>
