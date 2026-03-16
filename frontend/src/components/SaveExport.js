@@ -11,8 +11,8 @@ import { saveDesign, getDesigns, getDesign } from '../services/api';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 
-export function SaveExport() {
-  const { design, setModel, setAccentColor, setLayerColor, setDesign } = useDesign();
+export function SaveExport({ captureFunction = null } = {}) {
+  const { design, setModel, setAccentColor, setLayerColor, setDesign, setLogo } = useDesign();
   const {
     tier,
     savedDesignsCount,

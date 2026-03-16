@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { SubscriptionProvider } from '../context/SubscriptionContext';
 import { DesignProvider } from '../context/DesignContext';
 import { SneakerSetup } from './SneakerSetup';
@@ -8,6 +9,7 @@ import { SaveExport } from './SaveExport';
 import { OrderSummary } from './OrderSummary';
 import { SubscriptionTierToggle } from './SubscriptionTierToggle';
 import { useNavigate } from 'react-router-dom';
+import Footer from '../Footer';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export function CustomizerPage() {
@@ -56,11 +58,11 @@ export function CustomizerPage() {
             <div className="col-lg-6">
               <SneakerSetup />
               <ColorCustomizer />
-              <SaveExport />
+              <SaveExport captureFunction={captureFunction} />
               <OrderSummary />
             </div>
             <div className="col-lg-6">
-              <Mockup3D />
+              <Mockup3D onCaptureReady={handleCaptureReady} />
             </div>
           </div>
 

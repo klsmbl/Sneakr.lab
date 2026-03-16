@@ -4,6 +4,14 @@
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
+function getAuthHeader() {
+  const token = localStorage.getItem('token');
+  if (token) {
+    return { 'Authorization': `Bearer ${token}` };
+  }
+  return {};
+}
+
 export async function saveDesign(design) {
   const res = await fetch(`${API_BASE}/api/designs`, {
     method: 'POST',
