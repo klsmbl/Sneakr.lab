@@ -14,7 +14,6 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
 import WhoAreWe from './pages/WhoAreWe';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function App() {
