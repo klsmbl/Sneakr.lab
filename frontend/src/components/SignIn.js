@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useUser } from '../context/UserContext';
 import { signIn as apiSignIn, signUp as apiSignUp } from '../services/api';
 import './SignIn.css';
@@ -16,6 +17,7 @@ export function SignIn() {
   const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState('');
+  const [showTermsPreview, setShowTermsPreview] = useState(false);
 
   // Login fields
   const [loginEmail, setLoginEmail] = useState('');
@@ -160,6 +162,21 @@ export function SignIn() {
             <button className="auth-submit-btn" type="submit" disabled={loading}>
               {loading ? 'Logging in…' : 'Log In'}
             </button>
+
+            <p className="auth-terms-note">
+              By continuing, you agree to our{' '}
+              <Link
+                to="/terms"
+                state={{ showFooterLoader: true }}
+                className="auth-terms-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setShowTermsPreview(true);
+                }}
+              >
+                Terms and Services
+              </Link>
+            </p>
           </form>
         </div>
 
@@ -233,8 +250,54 @@ export function SignIn() {
             <button className="auth-submit-btn" type="submit" disabled={loading}>
               {loading ? 'Creating account…' : 'Create Account'}
             </button>
+
+            <p className="auth-terms-note">
+              By continuing, you agree to our{' '}
+              <Link
+                to="/terms"
+                state={{ showFooterLoader: true }}
+                className="auth-terms-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setShowTermsPreview(true);
+                }}
+              >
+                Terms and Services
+              </Link>
+            </p>
           </form>
         </div>
+
+        {showTermsPreview && createPortal(
+          <div
+            className="auth-terms-preview-overlay"
+            onClick={() => setShowTermsPreview(false)}
+            role="presentation"
+          >
+            <div
+              className="auth-terms-preview"
+              role="dialog"
+              aria-label="Terms and Services preview"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="auth-terms-preview__close"
+                onClick={() => setShowTermsPreview(false)}
+                aria-label="Close Terms preview"
+              >
+                ×
+              </button>
+              <h3>Terms and Services</h3>
+              <iframe
+                title="Terms and Services"
+                src="/terms?embed=1"
+                className="auth-terms-preview__frame"
+              />
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
     </div>
   );

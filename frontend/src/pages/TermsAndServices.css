@@ -1,16 +1,114 @@
 /* Terms and Services Page Styling */
 
 .terms-services {
-  min-height: 100vh;
+  height: 100vh;
   padding: 0;
+  overflow-y: auto;
   background: var(--bg);
   color: var(--text-main);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 210, 202, 0.55) rgba(255, 255, 255, 0.02);
+}
+
+.terms-services::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terms-services::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 999px;
+}
+
+.terms-services::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226, 223, 216, 0.82), rgba(187, 183, 175, 0.76));
+  border-radius: 999px;
+  border: 1px solid rgba(29, 36, 49, 0.6);
+}
+
+.terms-services::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(240, 236, 230, 0.9), rgba(204, 199, 190, 0.86));
+}
+
+.terms-services::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Ensure consistent premium scrollbar in iframe and full-page contexts */
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 210, 202, 0.55) rgba(255, 255, 255, 0.02);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226, 223, 216, 0.82), rgba(187, 183, 175, 0.76));
+  border-radius: 999px;
+  border: 1px solid rgba(29, 36, 49, 0.6);
+}
+
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .terms-services__container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 60px 28px 80px;
+}
+
+.terms-services--embed {
+  height: 100%;
+  min-height: 100%;
+  background: linear-gradient(180deg, #2f3540, #262c36);
+}
+
+.terms-services--embed .terms-services__container {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 24px 26px 34px;
+}
+
+.terms-services--embed .terms-services__header {
+  text-align: left;
+  margin-bottom: 34px;
+}
+
+.terms-services--embed .terms-services__title {
+  font-size: clamp(30px, 3.2vw, 42px);
+  letter-spacing: 0.6px;
+}
+
+.terms-services--embed .terms-section {
+  margin-bottom: 34px;
+  padding-bottom: 28px;
+}
+
+.terms-services--embed .terms-section__title {
+  font-size: clamp(24px, 2.2vw, 30px);
+  margin-bottom: 18px;
+}
+
+.terms-services--embed .terms-section__content p,
+.terms-services--embed .terms-list li {
+  font-size: 15px;
+  line-height: 1.75;
 }
 
 /* Back Button */

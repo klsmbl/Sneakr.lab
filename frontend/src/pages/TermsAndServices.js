@@ -1,26 +1,30 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import './TermsAndServices.css';
 import Footer from '../Footer';
 
 function TermsAndServices() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEmbed = new URLSearchParams(location.search).get('embed') === '1';
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="terms-services">
+    <div className={`terms-services ${isEmbed ? 'terms-services--embed' : ''}`}>
       <div className="terms-services__container">
         {/* Back Button */}
-        <button 
-          className="terms-services__back"
-          onClick={() => navigate('/')}
-          aria-label="Go back to homepage"
-        >
-          ← Back to Home
-        </button>
+        {!isEmbed && (
+          <button 
+            className="terms-services__back"
+            onClick={() => navigate('/')}
+            aria-label="Go back to homepage"
+          >
+            ← Back to Home
+          </button>
+        )}
 
         {/* Page Title */}
         <div className="terms-services__header">
@@ -576,7 +580,7 @@ function TermsAndServices() {
 
 
       </div>
-      <Footer />
+      {!isEmbed && <Footer />}
     </div>
   );
 }

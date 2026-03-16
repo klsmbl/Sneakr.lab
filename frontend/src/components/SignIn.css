@@ -237,6 +237,107 @@
   transform: none;
 }
 
+.auth-terms-note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sl-ink-2);
+}
+
+.auth-terms-link {
+  color: var(--sl-primary-dark);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.auth-terms-link:hover {
+  color: var(--sl-primary);
+  border-bottom-color: var(--sl-primary);
+}
+
+.auth-terms-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 14, 0.46);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 1200;
+}
+
+.auth-terms-preview {
+  width: min(92vw, 1080px) !important;
+  max-width: none !important;
+  height: min(78vh, 760px) !important;
+  max-height: min(78vh, 760px) !important;
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(229, 225, 219, 0.2);
+  background: linear-gradient(180deg, rgba(52, 59, 71, 0.98), rgba(38, 44, 54, 0.98));
+  color: var(--sl-ink-1);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.38);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-terms-preview h3 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  color: var(--sl-primary-dark);
+}
+
+.auth-terms-preview__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--sl-ink-2);
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.auth-terms-preview__close:hover {
+  color: var(--sl-primary-dark);
+  background: rgba(229, 225, 219, 0.08);
+}
+
+.auth-terms-preview__frame {
+  width: 100%;
+  flex: 1;
+  height: auto;
+  border: 1px solid rgba(229, 225, 219, 0.2);
+  border-radius: 12px;
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .auth-terms-preview {
+    width: min(94vw, 760px) !important;
+    height: 82vh !important;
+    max-height: 82vh !important;
+    min-height: 0;
+    margin: 0 auto;
+  }
+
+  .auth-terms-preview__frame {
+    flex: 1;
+    height: auto;
+  }
+}
+
 .auth-field-error {
   min-height: 17px;
   font-size: 0.8rem;
