@@ -2,15 +2,29 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BusinessForm.css';
 
-const EXAMPLE_CARDS = [
-  { label: 'Corporate Edition', tag: 'Brand Launch', imageSrc: '/adblueshoe.webp', imageAlt: 'Blue branded sneaker', imageOnly: true },
-  { label: 'Team Collection', tag: 'Sports & Events', imageSrc: '/adyellowshoe.webp', imageAlt: 'Yellow branded sneaker', imageOnly: true },
-  { label: 'Limited Series', tag: 'Promotional' },
+const ROTATING_SHOES = [
+  { label: 'Better RX', imageSrc: '/better rx.webp', imageAlt: 'Better RX branded sneaker', imageOnly: true },
+  { label: 'CHG', imageSrc: '/chg.webp', imageAlt: 'CHG branded sneaker', imageOnly: true },
+  { label: 'Core V1', imageSrc: '/core v1.webp', imageAlt: 'Core V1 branded sneaker', imageOnly: true },
+  { label: 'Corporate Edition', imageSrc: '/adblueshoe.webp', imageAlt: 'Blue branded sneaker', imageOnly: true },
+  { label: 'Team Collection', imageSrc: '/adyellowshoe.webp', imageAlt: 'Yellow branded sneaker', imageOnly: true },
+  { label: 'Net Jets', imageSrc: '/net jets.webp', imageAlt: 'Net Jets branded sneaker', imageOnly: true },
 ];
+
+function getRandomCards(cards, count = 3) {
+  const result = [...cards];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result.slice(0, count);
+}
 
 function BusinessForm() {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
+  const [rotatingCards, setRotatingCards] = useState(() => getRandomCards(ROTATING_SHOES));
+  const [rotationCycle, setRotationCycle] = useState(0);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -21,6 +35,15 @@ function BusinessForm() {
     );
     if (sectionEl) observer.observe(sectionEl);
     return () => { if (sectionEl) observer.unobserve(sectionEl); };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRotatingCards(getRandomCards(ROTATING_SHOES));
+      setRotationCycle((prev) => prev + 1);
+    }, 3000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const [formData, setFormData] = useState({
@@ -83,10 +106,10 @@ function BusinessForm() {
 
             {/* Three small example cards */}
             <div className="bf__cards">
-              {EXAMPLE_CARDS.map((card) => (
-                <div key={card.label} className={`bf__card${card.imageOnly ? ' bf__card--image-only' : ''}`}>
+              {rotatingCards.map((card, index) => (
+                <div key={`${rotationCycle}-${index}-${card.label}`} className={`bf__card${card.imageOnly ? ' bf__card--image-only' : ''}`}>
                   {card.imageSrc ? (
-                    <img className="bf__card-image" src={card.imageSrc} alt={card.imageAlt} />
+                    <img className="bf__card-image bf__card-image--fade-in" src={card.imageSrc} alt={card.imageAlt} />
                   ) : (
                     <div className="bf__card-thumb" aria-hidden="true">👟</div>
                   )}
