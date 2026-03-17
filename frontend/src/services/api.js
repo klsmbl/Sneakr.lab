@@ -55,6 +55,32 @@ export async function deleteDesign(id) {
   if (!res.ok && res.status !== 204) throw new Error('Failed to delete design');
 }
 
+export async function signIn(email, password) {
+  const res = await fetch(`${API_BASE}/api/auth/signin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Sign in failed' }));
+    throw new Error(err.error || 'Sign in failed');
+  }
+  return res.json();
+}
+
+export async function signUp(email, password, role = 'user') {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, role })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Sign up failed' }));
+    throw new Error(err.error || 'Sign up failed');
+  }
+  return res.json();
+}
+
 // Subscription and Payment APIs
 export async function getSubscription() {
   const res = await fetch(`${API_BASE}/api/subscription`, {

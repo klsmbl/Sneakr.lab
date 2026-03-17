@@ -1,238 +1,107 @@
-# Sneakr.lab - Sneaker Customizer
+# Sneakr.lab - AI Sneaker Customizer
 
-**DATASTALGO Project** - A web-based sneaker customization platform with real-time 3D preview and subscription-based feature gating.
+**Sneakr.lab** is a web-based sneaker customization platform that combines **AI-assisted logo generation** with **real-time 3D visualization**. This project demonstrates DATASTALGO concepts through structured data handling, algorithm-based calculations, and a subscription-based feature gating system.
 
 ![Sneakr.lab](https://img.shields.io/badge/status-active-success.svg)
 ![React](https://img.shields.io/badge/React-19.2.4-blue.svg)
 ![Three.js](https://img.shields.io/badge/Three.js-0.182.0-black.svg)
+![PayPal](https://img.shields.io/badge/Payments-PayPal_Sandbox-blue.svg)
 
-## Features
-
-### 🎨 Real-Time Customization
-- **Multi-Zone Color Customization**: Upper, sole, and accent colors
-- **Real-Time 3D Preview**: Interactive 3D model with rotation and zoom using Three.js
-- **Classic Low Model**: Professional sneaker model with vertex coloring
-- **Design Patterns**: Plain customization template
-
-### 💎 Subscription Tiers
-- **Free Tier**:
-  - Classic Low sneaker model
-  - 5 basic color options
-  - Customizable upper, sole, and accents
-  - Watermark on preview
-  
-- **Premium Tier**:
-  - All free features
-  - 15+ color options
-  - Unlimited saved designs
-  - HD export
-  - No watermark
-  - Access to premium models (coming soon)
-
-### 💾 Database Integration (Optional)
-- Save and load designs from PostgreSQL
-- View design history
-- Share designs via unique IDs
-
-
-## Tech Stack
-
-- **Frontend**: React 19, React Router DOM 7, Bootstrap 5
-- **3D Rendering**: Three.js 0.182, React Three Fiber 9.5, React Three Drei 10.7
-- **Backend**: Express.js, PostgreSQL (optional)
-- **State Management**: React Context API
-- **Styling**: Bootstrap 5, Custom CSS
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+ and npm
-- PostgreSQL (optional - only needed for saving designs)
+- **Node.js 20+** and **npm**
+- **PayPal Sandbox Account** (for testing payments)
 
-### Installation
-
-1. **Clone and Navigate to Frontend**
+### One-Time Setup
+Run the following command from the **root directory** to install all dependencies for the frontend and backend:
 ```bash
-cd Sneakr.lab/frontend
-npm install
+npm run install:all
 ```
 
-2. **Install Backend Dependencies** (Optional - for saving designs)
+### Starting the Project
+To start both the **frontend** and **backend** servers concurrently, run:
 ```bash
-cd ../server
-npm install
-```
-
-3. **Set Up Database** (Optional - for save/load feature)
-```bash
-# Create a PostgreSQL database
-createdb sneakrlab
-
-# Set up environment variables
-cd server
-cp .env.example .env
-# Edit .env and add your DATABASE_URL
-
-# Run schema
-psql $DATABASE_URL -f schema.sql
-```
-
-### Running the App
-
-1. **Start Frontend**
-```bash
-cd frontend
 npm start
 ```
-App opens at [http://localhost:3000](http://localhost:3000)
-
-2. **Start Backend** (Optional - in another terminal)
-```bash
-cd server
-npm start
-```
-API runs at [http://localhost:3001](http://localhost:3001)
-
-## Routes
-
-- `/` - Landing page with hero section
-- `/customizer` - 3D sneaker customizer interface
-
-## Project Structure
-
-```
-Sneakr.lab/
-├── frontend/             # React application
-│   ├── public/
-│   │   ├── index.html
-│   │   ├── manifest.json
-│   │   └── *.png        # Landing page images
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   │   ├── LandingPage.js
-│   │   │   ├── LandingPage.css
-│   │   │   ├── CustomizerPage.js
-│   │   │   ├── SneakerSetup.js
-│   │   │   ├── ColorCustomizer.js
-│   │   │   ├── Mockup3D.js
-│   │   │   ├── SaveExport.js
-│   │   │   ├── OrderSummary.js
-│   │   │   └── SubscriptionTierToggle.js
-│   │   ├── context/      # React Context providers
-│   │   │   ├── DesignContext.js
-│   │   │   └── SubscriptionContext.js
-│   │   ├── data/         # Static data and configurations
-│   │   │   ├── sneakerOptions.js
-│   │   │   └── sneakerModelAssets.js
-│   │   ├── services/     # API client
-│   │   │   └── api.js
-│   │   ├── utils/        # Utility functions
-│   │   │   └── designTextures.js
-│   │   ├── App.js
-│   │   ├── App.css
-│   │   └── index.js
-│   └── package.json
-├── public/               # 3D models (legacy location)
-│   └── models/
-│       └── classic-low.glb
-├── server/               # Express backend (optional)
-│   ├── routes/
-│   │   └── designs.js
-│   ├── db.js
-│   ├── index.js
-│   ├── schema.sql
-│   └── package.json
-├── .gitignore
-└── package.json          # Root package file
-```
-
-## Adding 3D Models
-
-The app supports custom 3D sneaker models in `.glb` or `.gltf` format:
-- Download free models from [Sketchfab](https://sketchfab.com)
-- Place them in `public/models/` directory
-- Configure new models in `frontend/src/data/sneakerOptions.js`
-
-## Development
-
-### Available Scripts
-
-In the `frontend/` directory:
-- `npm start` - Run development server (opens at http://localhost:3000)
-- `npm run build` - Build for production
-- `npm test` - Run tests
-- `npm run eject` - Eject from Create React App
-
-### Environment Variables
-
-Frontend (optional - create `.env` in frontend/):
-```bash
-REACT_APP_API_URL=http://localhost:3001
-```
-
-Backend (create `.env` in server/):
-```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/sneakrlab
-PORT=3001
-```
-
-## Features in Detail
-
-### Color Customization
-Uses vertex coloring for real-time 3D model updates. The shoe starts with an all-white default and users can customize:
-- **Upper**: Main body and sides
-- **Sole**: Bottom section  
-- **Accents**: Details and highlights
-
-Colors are applied using Three.js vertex attributes based on Y-position of mesh vertices.
-
-### Subscription System
-- Free users see a watermark on the 3D preview
-- Premium users get unlimited colors, no watermark, and HD export
-- Tier status managed via React Context (`SubscriptionContext.js`)
-
-## Deployment
-
-### Frontend
-```bash
-cd frontend
-npm run build
-# Deploy the build/ folder to Vercel, Netlify, or any static host
-```
-
-### Backend (Optional)
-```bash
-cd server
-# Set DATABASE_URL environment variable on your hosting platform
-npm start
-# Deploy to Railway, Render, Heroku, or any Node.js hosting
-```
-
-## Key Technologies
-
-- **Three.js Vertex Coloring**: Real-time color application without texture maps
-- **React Context API**: Global state management for design and subscription
-- **React Three Fiber**: Declarative Three.js in React
-- **Bootstrap 5**: Responsive UI components
-- **PostgreSQL**: Optional design persistence
-
-## Roadmap
-
-- [ ] Add more sneaker models (Air Force 1, Jordan 1, etc.)
-- [ ] Implement texture patterns (stripes, camo, gradient)
-- [ ] Add material options (leather, suede, mesh)
-- [ ] Social sharing features
-- [ ] Design marketplace
-
-## Contributing
-
-This is a DATASTALGO project for sneaker customization. 
-
-## License
-
-This project is for educational and demonstration purposes.
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:3001](http://localhost:3001)
 
 ---
 
-**Sneakr.lab** - Where ideas become sneakers ✨
+## 🎨 Key Features
 
+### 1. Real-Time 3D Customizer
+- **Interactive 3D Preview**: Rotate, zoom, and view your sneaker design in real-time.
+- **Layer-Based Coloring**: Customize individual shoe parts (Upper, Sole, Accents, etc.) using Nike-style vertex coloring.
+- **3D Capture**: Snap a screenshot of your 3D design for export or virtual try-on.
+
+### 2. Subscription & PayPal Integration
+- **Feature Gating**: Access depends on your subscription tier (Free vs. Premium).
+- **Official PayPal SDK**: Secure payment processing via PayPal Sandbox.
+- **Automated Upgrades**: Real-time account status updates upon successful payment.
+
+### 3. AI Logo Generator (Planned/Integrated)
+- Generate unique sneaker logos using AI prompts.
+- Apply generated textures directly to the 3D shoe model.
+
+---
+
+## 💎 Subscription Tiers
+
+| Feature | Free Tier | Premium Tier |
+| :--- | :--- | :--- |
+| **Models** | 1 Classic Model | All Sneaker Models |
+| **Colors** | Limited Palette | Unlimited Colors |
+| **AI Generations** | 3 per Day | Unlimited |
+| **Design Saves** | Up to 2 Designs | Unlimited Saves |
+| **Export** | Standard Quality | HD Export (No Watermark) |
+| **Price** | $0 | $9.99/mo or $99.99/yr |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19, React Router 7, Bootstrap 5, Lucide Icons
+- **3D Engine**: Three.js, React Three Fiber (R3F), Drei
+- **Backend**: Node.js, Express.js
+- **Database**: SQLite (via `better-sqlite3`)
+- **Payments**: PayPal JavaScript SDK (`@paypal/react-paypal-js`)
+- **State**: React Context API (User, Design, and Subscription contexts)
+
+---
+
+## 📂 Project Structure
+
+```
+Sneakr.lab/
+├── frontend/             # React Application
+│   ├── src/
+│   │   ├── components/   # UI Components (Customizer, Payment, etc.)
+│   │   ├── context/      # Subscription & User State
+│   │   ├── services/     # API Client (PayPal, Auth, Designs)
+│   │   └── pages/        # Full-page views (WhoAreWe, Policies)
+├── server/               # Node.js Express Backend
+│   ├── routes/           # API Endpoints (Auth, Payments, Designs)
+│   ├── sneakrlab.db      # SQLite Database
+│   └── index.js          # Server Entry Point
+├── package.json          # Root orchestration (Concurrent startup)
+└── README.md             # This file
+```
+
+---
+
+## 🧪 Testing Payments (PayPal Sandbox)
+
+To test the premium upgrade:
+1. Sign in or Sign up at `/signin`.
+2. Click **"Upgrade to Premium"** in the navigation bar.
+3. Select a plan and use a **PayPal Sandbox Buyer account** (e.g., `sb-mock@paypal.com`) to complete the transaction.
+4. Your account will automatically upgrade to **Premium** status.
+
+---
+
+## 📜 License
+This project is built by computer engineering students for the **DATASTALGO** course. For educational purposes only.
+
+**Sneakr.lab** - *Where ideas become sneakers ✨*

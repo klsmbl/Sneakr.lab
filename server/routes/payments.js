@@ -5,13 +5,17 @@
 import { randomUUID } from 'crypto';
 import db from '../db.js';
 
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || 'AeZJa8rZozqJ3gQRaKSc8R7Z1ZLK3xyYRNVCE-qb5vJ0uq1zVEGH7z86qVLaRnhS8pS8u6zXjfG1OvWa';
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || 'ED3mD3gEYAKNEYSqr19VQUxVe8fCXvzLQ9VfVBW1uqKtDaVpCEjQTFzKiKJyBGYyHQE9BXXEr0qA-vKHF';
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
 const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
 
 // Get PayPal access token
 async function getPayPalAccessToken() {
   try {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error('PayPal credentials missing from environment');
+    }
+
     const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
     const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
       method: 'POST',

@@ -145,11 +145,12 @@ Or navigate directly to `/subscription`
 - **Monthly**: $9.99/month
 - **Yearly**: $99.99/year (Save $19.89!)
 
-### 4. Complete Payment (Demo Mode)
-- Click upgrade button
-- A dialog will show the PayPal order ID
-- Click "Complete Payment" to simulate successful payment
-- Your subscription will be activated immediately
+### 4. Complete Payment
+- Click "Upgrade Monthly" or "Upgrade Yearly"
+- The official PayPal checkout window will open
+- Log in with your Sandbox Buyer account (sb-mock@paypal.com / 123456)
+- Review and complete the payment
+- Your account will be upgraded automatically and your payment history updated!
 
 ### 5. Verify Features
 Check payment history and feature access in the app

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/react-paypal-js": "^9.0.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@testing-library/dom": "^10.4.1",
