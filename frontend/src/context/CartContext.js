@@ -44,12 +44,15 @@ export function CartProvider({ children }) {
   }, [items]);
 
   const addItem = useCallback((item) => {
+    const fallbackPreview = localStorage.getItem('shoe_image');
+
     const normalized = {
       ...item,
       quantity: normalizeQuantity(item.quantity),
       cartFingerprint: getCartFingerprint(item),
       id: item.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       unitPrice: item.unitPrice || 120,
+      previewImage: item.previewImage || fallbackPreview || null,
     };
 
     setItems((prev) => {
@@ -58,7 +61,13 @@ export function CartProvider({ children }) {
 
       const updated = [...prev];
       const mergedQty = normalizeQuantity(updated[idx].quantity + normalized.quantity);
-      updated[idx] = { ...updated[idx], quantity: mergedQty };
+      updated[idx] = {
+        ...updated[idx],
+        ...normalized,
+        id: updated[idx].id,
+        quantity: mergedQty,
+        previewImage: normalized.previewImage || updated[idx].previewImage || null,
+      };
       return updated;
     });
 

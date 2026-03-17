@@ -93,7 +93,7 @@ function CustomizerLayout() {
             </div>
 
             <SaveExport captureFunction={captureFunction} />
-            <OrderSummary />
+            <OrderSummary captureFunction={captureFunction} />
           </div>
 
           <div className="customizer-bottom-panel__menu-row">

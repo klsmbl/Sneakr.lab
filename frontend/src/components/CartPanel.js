@@ -14,7 +14,11 @@ function CartItem({ item, onRemove, onQtyChange }) {
   return (
     <article className="cart-panel__item">
       <div className="cart-panel__thumb" aria-hidden="true">
-        <div className="cart-panel__thumb-icon">👟</div>
+        {item.previewImage ? (
+          <img src={item.previewImage} alt="Custom shoe preview" className="cart-panel__thumb-image" />
+        ) : (
+          <div className="cart-panel__thumb-icon">👟</div>
+        )}
       </div>
 
       <div className="cart-panel__item-main">
