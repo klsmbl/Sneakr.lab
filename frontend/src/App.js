@@ -24,6 +24,7 @@ import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import AccountPage from './pages/AccountPage';
 import EditProfilePage from './pages/EditProfilePage';
+import CheckoutPage from './pages/CheckoutPage';
 import { TryOnPage } from './components/TryOnPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -78,6 +79,7 @@ function AppRoutes() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/account/edit-profile" element={<EditProfilePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/tryon" element={<TryOnPage />} />
       </Routes>
     </>

@@ -58,11 +58,16 @@ def virtualTryOn(request):
         
         # Initialize Vertex AI
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
-        service_account_path = os.path.join(BASE_DIR, 'service-account.json')
-        
+        env_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
+        default_credentials_path = os.path.join(BASE_DIR, 'service-account.json')
+        service_account_path = env_credentials_path or default_credentials_path
+
         if not os.path.exists(service_account_path):
             return JsonResponse({
-                'error': 'service-account.json not found in project root. Please add your Google Cloud service account credentials.'
+                'error': (
+                    'Google service account credentials not found. '
+                    'Set GOOGLE_APPLICATION_CREDENTIALS or place service-account.json in the project root.'
+                )
             }, status=500)
         
         # Set credentials

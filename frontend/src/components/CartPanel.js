@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './CartPanel.css';
 
@@ -58,6 +59,7 @@ function CartItem({ item, onRemove, onQtyChange }) {
 }
 
 export function CartPanel() {
+  const navigate = useNavigate();
   const {
     items,
     subtotal,
@@ -71,6 +73,11 @@ export function CartPanel() {
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]
   );
+
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/checkout');
+  };
 
   return (
     <>
@@ -109,7 +116,12 @@ export function CartPanel() {
             <span>Subtotal</span>
             <strong>${subtotal.toFixed(2)}</strong>
           </div>
-          <button type="button" className="cart-panel__checkout" disabled={!items.length}>
+          <button
+            type="button"
+            className="cart-panel__checkout"
+            disabled={!items.length}
+            onClick={handleCheckout}
+          >
             Checkout
           </button>
           <button type="button" className="cart-panel__continue" onClick={closeCart}>
