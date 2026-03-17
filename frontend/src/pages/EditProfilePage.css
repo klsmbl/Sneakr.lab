@@ -1,0 +1,179 @@
+.edit-profile-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-gradient-bottom));
+  color: var(--text-main);
+}
+
+.edit-profile-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 38px 24px 26px;
+  display: grid;
+  gap: 18px;
+}
+
+.edit-profile-header h1 {
+  margin: 0;
+  font-size: clamp(30px, 4.2vw, 48px);
+  letter-spacing: 0.2px;
+}
+
+.edit-profile-header p {
+  margin: 10px 0 0;
+  color: var(--text-sub);
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+.edit-profile-back {
+  border: 1px solid rgba(229, 225, 219, 0.28);
+  border-radius: 999px;
+  background: rgba(11, 20, 32, 0.72);
+  color: var(--text-main);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.edit-profile-back:hover {
+  transform: translateY(-1px);
+  background: rgba(23, 34, 50, 0.9);
+  border-color: rgba(229, 225, 219, 0.4);
+}
+
+.edit-profile-status {
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 225, 219, 0.18);
+  background: rgba(18, 30, 46, 0.85);
+  color: var(--text-main);
+  padding: 10px 14px;
+  width: fit-content;
+}
+
+.edit-profile-card {
+  border-radius: 20px;
+  border: 1px solid rgba(229, 225, 219, 0.14);
+  background: linear-gradient(180deg, rgba(46, 58, 80, 0.88), rgba(29, 39, 55, 0.92));
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+  padding: 20px;
+}
+
+.edit-profile-card h2 {
+  margin: 0 0 14px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.edit-profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.edit-profile-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 1px solid rgba(229, 225, 219, 0.34);
+  background: radial-gradient(circle at 30% 22%, rgba(229, 225, 219, 0.32), rgba(24, 38, 59, 0.88));
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.edit-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.edit-profile-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.edit-profile-grid label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.edit-profile-grid input,
+.edit-profile-grid select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 225, 219, 0.2);
+  background: rgba(10, 16, 28, 0.5);
+  color: var(--text-main);
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.edit-profile-grid input:focus,
+.edit-profile-grid select:focus {
+  outline: none;
+  border-color: rgba(229, 225, 219, 0.45);
+  box-shadow: 0 0 0 3px rgba(229, 225, 219, 0.14);
+  background: rgba(14, 23, 37, 0.7);
+}
+
+.edit-profile-btn {
+  border: 1px solid rgba(229, 225, 219, 0.24);
+  background: rgba(12, 19, 31, 0.86);
+  color: var(--text-main);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.edit-profile-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(229, 225, 219, 0.4);
+  background: rgba(22, 33, 49, 0.95);
+}
+
+.edit-profile-btn--ghost {
+  background: rgba(229, 225, 219, 0.1);
+}
+
+@media (max-width: 900px) {
+  .edit-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .edit-profile-shell {
+    padding: 24px 16px 18px;
+  }
+
+  .edit-profile-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .edit-profile-avatar-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .edit-profile-grid,
+  .edit-profile-grid--two {
+    grid-template-columns: 1fr;
+  }
+}

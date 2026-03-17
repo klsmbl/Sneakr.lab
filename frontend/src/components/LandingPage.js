@@ -85,7 +85,7 @@ function HowToSection({ onGetStarted }) {
 export function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useUser();
+  const { user } = useUser();
   const { tier } = useSubscription();
   const { itemCount, openCart } = useCart();
 
@@ -103,9 +103,7 @@ export function LandingPage() {
 
   const handleProfileClick = () => {
     if (user) {
-      if (window.confirm('Do you want to sign out?')) {
-        signOut();
-      }
+      navigate('/account');
     } else {
       navigate('/signin');
     }
@@ -143,7 +141,7 @@ export function LandingPage() {
               {itemCount > 0 && <span className="icon-button__badge">{itemCount}</span>}
             </button>
             <button className="icon-button" type="button" aria-label="Profile" onClick={handleProfileClick}>
-              <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'Sign Out' : 'Sign In'} />
+              <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'My Account' : 'Sign In'} />
             </button>
           </div>
         </div>
