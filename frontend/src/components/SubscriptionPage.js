@@ -2,7 +2,8 @@
  * Sneakr.lab - Subscription & Payment Page
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { 
@@ -14,21 +15,20 @@ import {
 import './SubscriptionPage.css';
 
 export function SubscriptionPage() {
+  const navigate = useNavigate();
   const { user } = useUser();
-  const { tier, setTier } = useSubscription();
+  const { setTier } = useSubscription();
   const [subscription, setSubscription] = useState(null);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [paymentInProgress, setPaymentInProgress] = useState(false);
+  const [paypalReady, setPaypalReady] = useState(false);
+  const monthlyButtonsRef = useRef(null);
+  const yearlyButtonsRef = useRef(null);
+  const plansRef = useRef(null);
+  const PAYPAL_CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID;
 
-  useEffect(() => {
-    if (!user) return;
-    loadSubscriptionData();
-  }, [user]);
-
-  const loadSubscriptionData = async () => {
+  const loadSubscriptionData = useCallback(async () => {
     try {
       setLoading(true);
       const [subData, paymentData] = await Promise.all([
@@ -43,135 +43,203 @@ export function SubscriptionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setTier]);
 
-  const handleUpgrade = async (plan) => {
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    loadSubscriptionData();
+  }, [user, loadSubscriptionData]);
+
+  useEffect(() => {
+    if (!user || subscription?.tier === 'premium') return;
+
+    if (!PAYPAL_CLIENT_ID) {
+      setError('Missing PayPal client configuration. Please set REACT_APP_PAYPAL_CLIENT_ID.');
+      return;
+    }
+
+    if (window.paypal) {
+      setPaypalReady(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+    script.async = true;
+    script.onload = () => setPaypalReady(true);
+    script.onerror = () => setError('Failed to load PayPal SDK. Please refresh and try again.');
+    document.body.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, [user, subscription?.tier, PAYPAL_CLIENT_ID]);
+
+  const handleUpgrade = useCallback(async (plan) => {
     try {
-      setPaymentInProgress(true);
-      setSelectedPlan(plan);
       setError('');
 
-      // Create PayPal order
       const orderData = await createSubscriptionOrder(plan);
-      
-      // Redirect to PayPal for approval
-      if (orderData.id) {
-        // In production, use PayPal Checkout integration
-        // For now, show order info and allow capture
-        localStorage.setItem('pendingPayPalOrderId', orderData.id);
-        localStorage.setItem('pendingPayPalPlan', plan);
-        
-        // Simulate PayPal checkout (in real app, use PayPal buttons)
-        alert(`Payment Order Created: ${orderData.id}\n\nIn production, you would be redirected to PayPal for payment approval.\n\nFor demo purposes, click "Complete Payment" to simulate payment completion.`);
-        
-        // After approval, capture the order
-        setTimeout(() => capturePayment(orderData.id), 1000);
-      }
+      return orderData.id;
     } catch (err) {
       setError(err.message);
-    } finally {
-      setPaymentInProgress(false);
-      setSelectedPlan(null);
+      throw err;
     }
-  };
+  }, []);
 
-  const capturePayment = async (orderId) => {
+  const capturePayment = useCallback(async (orderId) => {
     try {
       const result = await captureSubscriptionOrder(orderId);
       setTier('premium');
-      setSubscription({
-        ...subscription,
+      setSubscription((prev) => ({
+        ...(prev || {}),
         tier: 'premium',
         subscription_date: result.subscription_date
-      });
+      }));
       setError('');
-      alert('✅ Payment successful! You are now a Premium user!');
-      localStorage.removeItem('pendingPayPalOrderId');
-      localStorage.removeItem('pendingPayPalPlan');
       await loadSubscriptionData();
     } catch (err) {
       setError(err.message);
     }
-  };
+  }, [loadSubscriptionData, setTier]);
+
+  useEffect(() => {
+    if (!paypalReady || !window.paypal || subscription?.tier === 'premium') {
+      return;
+    }
+
+    if (monthlyButtonsRef.current) {
+      monthlyButtonsRef.current.innerHTML = '';
+      window.paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal', height: 42 },
+        createOrder: async () => handleUpgrade('monthly'),
+        onApprove: async (data) => {
+          await capturePayment(data.orderID);
+        },
+        onError: () => {
+          setError('PayPal payment failed. Please try again.');
+        },
+      }).render(monthlyButtonsRef.current);
+    }
+
+    if (yearlyButtonsRef.current) {
+      yearlyButtonsRef.current.innerHTML = '';
+      window.paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal', height: 42 },
+        createOrder: async () => handleUpgrade('yearly'),
+        onApprove: async (data) => {
+          await capturePayment(data.orderID);
+        },
+        onError: () => {
+          setError('PayPal payment failed. Please try again.');
+        },
+      }).render(yearlyButtonsRef.current);
+    }
+  }, [paypalReady, subscription?.tier, handleUpgrade, capturePayment]);
+
+  if (!user) {
+    return (
+      <div className="subscription-page">
+        <div className="subscription-auth-required">
+          <h1>Upgrade to Premium</h1>
+          <p>Create an account or sign in to access Premium membership.</p>
+          <button type="button" className="subscription-cta-btn" onClick={() => navigate('/signin')}>
+            Sign In / Create Account
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
-    return <div className="subscription-page"><p>Loading...</p></div>;
+    return <div className="subscription-page"><p className="subscription-loading">Loading premium details...</p></div>;
   }
 
   return (
     <div className="subscription-page">
-      <h1>Sneakr.lab Premium</h1>
+      <section className="premium-hero">
+        <h1>Upgrade to Premium</h1>
+        <p>
+          Unlock advanced customization tools, priority production, and exclusive design features.
+        </p>
+        {subscription?.tier === 'premium' ? (
+          <p className="premium-hero__status">You are already on Premium.</p>
+        ) : (
+          <button
+            type="button"
+            className="subscription-cta-btn"
+            onClick={() => plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            Upgrade Now
+          </button>
+        )}
+      </section>
+
+      <section className="premium-features-grid" aria-label="Premium feature highlights">
+        <article className="premium-feature-card">
+          <h3>Advanced Customization Options</h3>
+          <p>Access expanded design controls and advanced material combinations.</p>
+        </article>
+        <article className="premium-feature-card">
+          <h3>Priority Order Processing</h3>
+          <p>Move your custom pair to the front of the production queue.</p>
+        </article>
+        <article className="premium-feature-card">
+          <h3>Exclusive Sneaker Templates</h3>
+          <p>Unlock limited and premium-only base templates for unique drops.</p>
+        </article>
+        <article className="premium-feature-card">
+          <h3>Early Access to New Features</h3>
+          <p>Get first access to upcoming tools and new customization modules.</p>
+        </article>
+      </section>
       
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="current-status">
         <h3>Current Plan</h3>
         <p>
-          <strong>{subscription?.tier === 'premium' ? '⭐ Premium' : 'Free'}</strong>
+          <strong>{subscription?.tier === 'premium' ? 'Premium' : 'Free'}</strong>
           {subscription?.subscription_date && (
             <span> - Since {new Date(subscription.subscription_date).toLocaleDateString()}</span>
           )}
         </p>
       </div>
 
-      <div className="pricing-plans">
-        <div className="plan free-plan">
-          <h2>Free</h2>
-          <p className="price">$0<span>/month</span></p>
-          <ul className="features">
-            <li>✓ Customize 1 sneaker model</li>
-            <li>✓ Limited color palette</li>
-            <li>✓ 3 AI logo generations/day</li>
-            <li>✓ Standard 3D quality</li>
-            <li>✓ Save 1-2 designs</li>
-            <li>✗ Watermarked designs</li>
-          </ul>
-          <button 
-            disabled={subscription?.tier === 'free'}
-            className="btn btn-outline-secondary"
+      <section className="pricing-plans" ref={plansRef}>
+        <div className="plan premium-plan">
+          <h2>Premium Monthly</h2>
+          <p className="price">$9.99<span>/month</span></p>
+          <button
+            type="button"
+            disabled={subscription?.tier === 'premium' || !paypalReady}
+            className="btn btn-primary"
           >
-            {subscription?.tier === 'free' ? 'Current Plan' : 'Downgrade'}
+            {subscription?.tier === 'premium' ? 'Current Plan' : 'Upgrade Now'}
           </button>
+          {subscription?.tier !== 'premium' && <div ref={monthlyButtonsRef} className="paypal-buttons-wrap" />}
         </div>
 
         <div className="plan premium-plan">
-          <div className="badge">POPULAR</div>
-          <h2>Premium</h2>
-          <div className="pricing-options">
-            <div className="option monthly">
-              <p className="price">$9.99<span>/month</span></p>
-              <button
-                onClick={() => handleUpgrade('monthly')}
-                disabled={subscription?.tier === 'premium' || paymentInProgress || selectedPlan === 'monthly'}
-                className="btn btn-primary"
-              >
-                {paymentInProgress && selectedPlan === 'monthly' ? 'Processing...' : 'Upgrade Monthly'}
-              </button>
-            </div>
-            <div className="option yearly">
-              <p className="price">$99.99<span>/year</span></p>
-              <p className="savings">Save $19.89</p>
-              <button
-                onClick={() => handleUpgrade('yearly')}
-                disabled={subscription?.tier === 'premium' || paymentInProgress || selectedPlan === 'yearly'}
-                className="btn btn-primary"
-              >
-                {paymentInProgress && selectedPlan === 'yearly' ? 'Processing...' : 'Upgrade Yearly'}
-              </button>
-            </div>
-          </div>
-          <ul className="features">
-            <li>✓ All sneaker models</li>
-            <li>✓ Unlimited colors & materials</li>
-            <li>✓ Unlimited AI generations</li>
-            <li>✓ HD quality output</li>
-            <li>✓ Save unlimited designs</li>
-            <li>✓ No watermarks</li>
-            <li>✓ Duplicate & edit designs</li>
-            <li>✓ Advanced presets</li>
-          </ul>
+          <h2>Premium Yearly</h2>
+          <p className="price">$99.99<span>/year</span></p>
+          <p className="savings">Save $19.89 vs monthly</p>
+          <button
+            type="button"
+            disabled={subscription?.tier === 'premium' || !paypalReady}
+            className="btn btn-primary"
+          >
+            {subscription?.tier === 'premium' ? 'Current Plan' : 'Upgrade Now'}
+          </button>
+          {subscription?.tier !== 'premium' && <div ref={yearlyButtonsRef} className="paypal-buttons-wrap" />}
         </div>
-      </div>
+      </section>
 
       {payments.length > 0 && (
         <div className="payment-history">
@@ -204,9 +272,9 @@ export function SubscriptionPage() {
       )}
 
       <div className="info-box">
-        <h4>PayPal Sandbox Demo</h4>
-        <p>This is a demonstration using PayPal Sandbox (virtual money). In production, this would use real PayPal payments.</p>
-        <p><strong>Test Accounts:</strong></p>
+        <h4>Secure Checkout</h4>
+        <p>Payments are processed through PayPal for secure and reliable transactions.</p>
+        <p><strong>Sandbox testing accounts:</strong></p>
         <ul>
           <li><strong>Buyer:</strong> sb-mock@paypal.com / password: 123456</li>
           <li><strong>Seller:</strong> sb-seller@paypal.com / password: 123456</li>

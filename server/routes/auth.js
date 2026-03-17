@@ -10,7 +10,7 @@ import db from '../db.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-dev';
 
 export async function signUp(req, res) {
-  const { email, password, role = 'user' } = req.body;
+  const { email, password, role = 'user', fullName = '' } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
@@ -21,11 +21,11 @@ export async function signUp(req, res) {
     const userId = randomUUID();
     
     const stmt = db.prepare(
-      'INSERT INTO users (id, email, password_hash, role, subscription) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO users (id, email, password_hash, role, subscription, full_name) VALUES (?, ?, ?, ?, ?, ?)'
     );
-    stmt.run(userId, email, passwordHash, role, 'free');
+    stmt.run(userId, email, passwordHash, role, 'free', fullName);
     
-    const user = { id: userId, email, role, subscription: 'free' };
+    const user = { id: userId, email, role, subscription: 'free', full_name: fullName };
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
 
     res.status(201).json({ user, token });

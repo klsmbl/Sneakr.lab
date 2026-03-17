@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import Footer from '../Footer';
 import './AccountPage.css';
 
@@ -15,17 +16,30 @@ const MENU_ITEMS = [
 export default function AccountPage() {
   const navigate = useNavigate();
   const { user, signOut } = useUser();
+  const { tier } = useSubscription();
   const [activeSection, setActiveSection] = useState('overview');
+  const [showSignOutNotice, setShowSignOutNotice] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   const profile = useMemo(() => ({
-    name: user?.name || user?.full_name || 'Alex Carter',
+    name: user?.name || user?.full_name || user?.fullName || 'Alex Carter',
     email: user?.email || 'alex.carter@email.com',
     memberSince: 'March 2026',
+    profilePhoto: user?.profilePhoto || '',
   }), [user]);
+
+  const profileInitials = useMemo(() => (
+    (profile.name || 'Alex Carter')
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
+  ), [profile.name]);
 
   // Real orders/design integrations are not implemented yet, so default to empty.
   const orders = [];
@@ -40,6 +54,7 @@ export default function AccountPage() {
   };
 
   const handleSignOut = () => {
+    setShowSignOutNotice(false);
     signOut();
     navigate('/signin');
   };
@@ -67,7 +82,11 @@ export default function AccountPage() {
             ))}
           </nav>
 
-          <button type="button" className="account-signout" onClick={handleSignOut}>
+          <button
+            type="button"
+            className="account-signout"
+            onClick={() => setShowSignOutNotice(true)}
+          >
             <span className="account-menu-item__icon" aria-hidden="true">SO</span>
             <span>Sign Out</span>
           </button>
@@ -77,7 +96,13 @@ export default function AccountPage() {
           <section id="account-overview" className="account-section">
             <h1>Profile / Account</h1>
             <div className="account-card account-overview-card">
-              <div className="account-avatar" aria-hidden="true">AC</div>
+              <div className="account-avatar" aria-hidden="true">
+                {profile.profilePhoto ? (
+                  <img src={profile.profilePhoto} alt="Profile" className="account-avatar__image" />
+                ) : (
+                  profileInitials
+                )}
+              </div>
               <div className="account-overview-info">
                 <p><span>Name:</span> {profile.name}</p>
                 <p><span>Email:</span> {profile.email}</p>
@@ -154,6 +179,26 @@ export default function AccountPage() {
             </div>
           </section>
 
+          <section className="account-section">
+            <h2>Premium Membership</h2>
+            <div className="account-card account-premium-card">
+              <p>
+                {tier === 'premium'
+                  ? 'Your Premium membership is active. Enjoy advanced customization and priority production.'
+                  : 'You are currently on a free plan. Upgrade to unlock advanced features and faster production.'}
+              </p>
+              {tier !== 'premium' && (
+                <button
+                  type="button"
+                  className="account-btn"
+                  onClick={() => navigate('/subscription')}
+                >
+                  Upgrade Now
+                </button>
+              )}
+            </div>
+          </section>
+
           <section id="account-settings" className="account-section">
             <h2>Account Settings</h2>
             <div className="account-card account-settings-card">
@@ -173,6 +218,33 @@ export default function AccountPage() {
           </section>
         </main>
       </div>
+
+      {showSignOutNotice && (
+        <div className="account-signout-modal-overlay" role="presentation" onClick={() => setShowSignOutNotice(false)}>
+          <div
+            className="account-signout-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Sign out confirmation"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>Sign out now?</h3>
+            <p>You will be logged out of your account on this device.</p>
+            <div className="account-signout-modal__actions">
+              <button
+                type="button"
+                className="account-btn account-btn--ghost"
+                onClick={() => setShowSignOutNotice(false)}
+              >
+                Cancel
+              </button>
+              <button type="button" className="account-btn" onClick={handleSignOut}>
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

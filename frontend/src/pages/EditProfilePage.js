@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Footer from '../Footer';
@@ -6,7 +6,8 @@ import './EditProfilePage.css';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, updateProfile } = useUser();
+  const fileInputRef = useRef(null);
 
   const initials = useMemo(() => {
     const name = user?.name || user?.full_name || 'Alex Carter';
@@ -44,6 +45,7 @@ export default function EditProfilePage() {
   });
 
   const [status, setStatus] = useState('');
+  const [photoPreview, setPhotoPreview] = useState(user?.profilePhoto || '');
 
   const updateStatus = (message) => {
     setStatus(message);
@@ -54,7 +56,36 @@ export default function EditProfilePage() {
 
   const handlePersonalSubmit = (event) => {
     event.preventDefault();
+    updateProfile({
+      name: personal.fullName,
+      full_name: personal.fullName,
+      email: personal.email,
+      phoneNumber: personal.phone,
+      profilePhoto: photoPreview,
+    });
     updateStatus('Profile details saved.');
+  };
+
+  const handlePhotoSelected = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      updateStatus('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result) return;
+      setPhotoPreview(result);
+      updateProfile({ profilePhoto: result });
+      updateStatus('Profile photo uploaded.');
+    };
+    reader.readAsDataURL(file);
+
+    event.target.value = '';
   };
 
   const handleAddressSubmit = (event) => {
@@ -94,8 +125,27 @@ export default function EditProfilePage() {
           <h2>Profile Information</h2>
           <form onSubmit={handlePersonalSubmit}>
             <div className="edit-profile-avatar-row">
-              <div className="edit-profile-avatar" aria-hidden="true">{initials}</div>
-              <button type="button" className="edit-profile-btn edit-profile-btn--ghost">Upload New Photo</button>
+              <div className="edit-profile-avatar" aria-hidden="true">
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Profile" className="edit-profile-avatar__image" />
+                ) : (
+                  initials
+                )}
+              </div>
+              <button
+                type="button"
+                className="edit-profile-btn edit-profile-btn--ghost"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Upload New Photo
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="edit-profile-photo-input"
+                onChange={handlePhotoSelected}
+              />
             </div>
 
             <div className="edit-profile-grid">

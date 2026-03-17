@@ -2,7 +2,10 @@
  * Sneakr.lab - API client for designs and authentication
  */
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE =
+  process.env.REACT_APP_NODE_API_URL ||
+  process.env.REACT_APP_API_URL ||
+  'http://localhost:3001';
 
 function getAuthHeader() {
   const token = localStorage.getItem('token');
@@ -22,11 +25,11 @@ export async function signIn(email, password) {
   return res.json();
 }
 
-export async function signUp(email, password, role = 'user') {
+export async function signUp(email, password, role = 'user', fullName = '') {
   const res = await fetch(`${API_BASE}/api/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, role }),
+    body: JSON.stringify({ email, password, role, fullName }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Sign up failed' }));

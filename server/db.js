@@ -56,4 +56,11 @@ schema.split(';').forEach(stmt => {
   }
 });
 
+// Lightweight migration: add users.full_name if database was created before this column existed.
+const userColumns = db.prepare("PRAGMA table_info(users)").all();
+const hasFullName = userColumns.some((column) => column.name === 'full_name');
+if (!hasFullName) {
+  db.exec('ALTER TABLE users ADD COLUMN full_name TEXT');
+}
+
 export default db;

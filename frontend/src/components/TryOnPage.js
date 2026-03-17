@@ -7,6 +7,8 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TryOnPage.css';
 
+const DJANGO_API_BASE = process.env.REACT_APP_DJANGO_API_URL || 'http://localhost:8000';
+
 export function TryOnPage() {
   const navigate = useNavigate();
   const [personImage, setPersonImage] = useState(null);
@@ -43,7 +45,7 @@ export function TryOnPage() {
     setResultImage(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/tryon/', {
+      const response = await fetch(`${DJANGO_API_BASE}/api/tryon/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

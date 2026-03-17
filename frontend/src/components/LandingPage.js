@@ -129,13 +129,9 @@ export function LandingPage() {
           <nav className="header__nav">
             <button className="nav-link" onClick={handleGetStarted}>Design a Custom Shoe</button>
             <button className="nav-link" onClick={() => document.getElementById('business-form')?.scrollIntoView({ behavior: 'smooth' })}>Branded Business Shoes</button>
-            {user && tier === 'free' && (
-              <button className="nav-link premium-btn" onClick={handleUpgradeClick}>⭐ Upgrade to Premium</button>
-            )}
           </nav>
 
           <div className="header__icons">
-            {user && <span className="user-email">{user.email} ({tier === 'premium' ? '⭐ Premium' : 'Free'})</span>}
             <button className="icon-button icon-button--cart" type="button" aria-label="Cart" onClick={openCart}>
               <img src="/online-shopping.png" alt="Cart" className="icon-img" />
               {itemCount > 0 && <span className="icon-button__badge">{itemCount}</span>}
@@ -143,6 +139,20 @@ export function LandingPage() {
             <button className="icon-button" type="button" aria-label="Profile" onClick={handleProfileClick}>
               <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'My Account' : 'Sign In'} />
             </button>
+            {user && (
+              <button
+                className={`header-upgrade-btn${tier === 'premium' ? ' is-premium' : ''}`}
+                type="button"
+                onClick={handleUpgradeClick}
+              >
+                {tier === 'premium' ? 'Premium' : 'Upgrade'}
+              </button>
+            )}
+            {!user && (
+              <button className="header-auth-btn" type="button" onClick={() => navigate('/signin')}>
+                Sign In / Create Account
+              </button>
+            )}
           </div>
         </div>
       </header>
