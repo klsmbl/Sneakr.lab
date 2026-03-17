@@ -15,6 +15,7 @@ import { SubscriptionPage } from './components/SubscriptionPage';
 import { UserProvider } from './context/UserContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { CartProvider } from './context/CartContext';
+import { DesignProvider } from './context/DesignContext';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
 import WhoAreWe from './pages/WhoAreWe';
@@ -90,11 +91,13 @@ function App() {
   return (
     <UserProvider>
       <SubscriptionProvider>
-        <CartProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </CartProvider>
+        <DesignProvider>
+          <CartProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </CartProvider>
+        </DesignProvider>
       </SubscriptionProvider>
     </UserProvider>
   );

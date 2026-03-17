@@ -48,7 +48,7 @@ export function ShoeSelectionPage() {
             return (
               <div
                 key={model.id}
-                className={`shoe-card${isLocked ? ' shoe-card--locked' : ''}`}
+                className={`shoe-card${model.premiumOnly ? ' shoe-card--premium' : ''}${isLocked ? ' shoe-card--locked' : ''}`}
               >
                 <div className="shoe-card__image">
                   <span className="shoe-card__icon">{model.icon}</span>

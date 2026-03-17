@@ -4,7 +4,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 40px 24px 32px;
+  padding: 36px 24px 34px;
   gap: 0;
 }
 
@@ -12,73 +12,74 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  min-width: 90px;
+  gap: 12px;
+  min-width: 96px;
 }
 
 .step-indicator__circle {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 2px solid rgba(197, 193, 184, 0.25);
+  border: 1px solid rgba(197, 193, 184, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Manrope', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(197, 193, 184, 0.4);
-  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(197, 193, 184, 0.48);
+  background: rgba(229, 225, 219, 0.01);
+  backdrop-filter: blur(6px);
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
 .step-indicator__circle.active {
-  border-color: #e5e1db;
-  color: #1f242a;
-  background: #e5e1db;
-  box-shadow: 0 0 20px rgba(229, 225, 219, 0.25);
+  border-color: rgba(236, 240, 248, 0.92);
+  color: #f7fbff;
+  background: linear-gradient(145deg, rgba(225, 232, 246, 0.24), rgba(170, 186, 214, 0.2));
+  box-shadow: 0 0 0 1px rgba(234, 241, 255, 0.3), 0 10px 22px rgba(11, 21, 36, 0.3);
 }
 
 .step-indicator__circle.done {
-  border-color: rgba(229, 225, 219, 0.5);
-  color: rgba(229, 225, 219, 0.6);
-  background: rgba(229, 225, 219, 0.06);
+  border-color: rgba(229, 225, 219, 0.4);
+  color: rgba(229, 225, 219, 0.62);
+  background: rgba(229, 225, 219, 0.05);
 }
 
 .step-indicator__label {
   font-family: 'Manrope', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  color: rgba(197, 193, 184, 0.4);
+  color: rgba(197, 193, 184, 0.46);
   white-space: nowrap;
   text-align: center;
   transition: all 0.35s ease;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.28px;
 }
 
 .step-indicator__label.active {
-  color: #e5e1db;
+  color: rgba(238, 244, 255, 0.95);
   font-weight: 600;
 }
 
 .step-indicator__label.done {
-  color: rgba(229, 225, 219, 0.55);
+  color: rgba(229, 225, 219, 0.62);
 }
 
 .step-indicator__line {
   height: 1px;
   flex: 1;
-  min-width: 32px;
-  max-width: 80px;
-  background: rgba(197, 193, 184, 0.15);
-  margin-top: 19px;
+  min-width: 44px;
+  max-width: 110px;
+  background: linear-gradient(90deg, rgba(197, 193, 184, 0.1), rgba(197, 193, 184, 0.22));
+  margin-top: 17px;
   transition: all 0.4s ease;
   flex-shrink: 1;
 }
 
 .step-indicator__line.done {
-  background: rgba(229, 225, 219, 0.45);
+  background: linear-gradient(90deg, rgba(229, 225, 219, 0.25), rgba(229, 225, 219, 0.58));
 }
 
 @media (max-width: 480px) {

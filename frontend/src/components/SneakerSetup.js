@@ -15,15 +15,13 @@ export function SneakerSetup() {
   const designOptions = DESIGNS.filter((d) => !d.premiumOnly || canUseUnlimitedColors());
 
   return (
-    <section className="card shadow-sm mb-4">
+    <section className="card shadow-sm mb-4 customizer-panel-card">
       <div className="card-body">
-        <h2 className="h5 mb-3">👟 Sneaker Setup</h2>
-        <p className="text-muted small mb-3">
-          Select your sneaker model to customize!
-        </p>
+        <h2 className="h6 mb-2">Model</h2>
+        <p className="text-muted small mb-3">Choose your base silhouette.</p>
 
-        <div className="mb-0">
-          <label className="form-label">Shoe Model</label>
+        <div className="mb-3">
+          <label className="form-label small text-muted mb-2">Shoe Model</label>
           <select
             className="form-select"
             value={design.modelId}
@@ -38,6 +36,25 @@ export function SneakerSetup() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="form-label small text-muted mb-2">Style</label>
+          <div className="design-toggle-row" role="tablist" aria-label="Design style options">
+            {designOptions.map((item) => {
+              const active = design.designId === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`design-toggle-pill ${active ? 'is-active' : ''}`}
+                  onClick={() => setDesign(item.id, item.name)}
+                >
+                  {item.name === 'Plain' ? 'Solid' : item.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

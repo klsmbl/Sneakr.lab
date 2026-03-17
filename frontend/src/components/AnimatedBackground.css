@@ -9,7 +9,7 @@
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.03;
+  opacity: 0.018;
 }
 
 .animated-background__pattern {
@@ -21,9 +21,9 @@
   display: grid;
   grid-template-columns: repeat(16, 1fr);
   grid-template-rows: repeat(12, 1fr);
-  gap: 60px;
-  padding: 40px;
-  animation: diagonalMove 50s linear infinite;
+  gap: 72px;
+  padding: 56px;
+  animation: diagonalMove 58s linear infinite;
 }
 
 @keyframes diagonalMove {
@@ -45,13 +45,20 @@
 }
 
 .animated-background__item img {
-  width: 80px;
+  width: 72px;
   height: auto;
   object-fit: contain;
   filter: brightness(0) invert(1);
   opacity: 1;
   user-select: none;
   pointer-events: none;
+}
+
+.animated-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0) 35%, rgba(3, 8, 17, 0.3) 100%);
 }
 
 /* Ensure seamless tiling */
@@ -67,41 +74,41 @@
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .animated-background__pattern {
-    gap: 50px;
-    padding: 30px;
+    gap: 58px;
+    padding: 36px;
   }
 
   .animated-background__item img {
-    width: 65px;
+    width: 60px;
   }
 }
 
 @media (max-width: 768px) {
   .animated-background {
-    opacity: 0.02;
+    opacity: 0.015;
   }
 
   .animated-background__pattern {
-    gap: 40px;
+    gap: 44px;
     padding: 20px;
-    animation: diagonalMove 60s linear infinite;
+    animation: diagonalMove 64s linear infinite;
   }
 
   .animated-background__item img {
-    width: 55px;
+    width: 52px;
   }
 }
 
 @media (max-width: 480px) {
   .animated-background {
-    opacity: 0.015;
+    opacity: 0.012;
   }
 
   .animated-background__pattern {
-    gap: 30px;
+    gap: 34px;
   }
 
   .animated-background__item img {
-    width: 45px;
+    width: 42px;
   }
 }

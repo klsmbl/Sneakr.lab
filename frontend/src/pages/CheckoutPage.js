@@ -28,7 +28,9 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [savePayment, setSavePayment] = useState(false);
 
-  const shoePreview = localStorage.getItem('shoe_image');
+  const shoePreview = localStorage.getItem('checkout_shoe_image') || localStorage.getItem('shoe_image');
+  const checkoutModelName = localStorage.getItem('checkout_model_name') || 'Custom Low Sneaker - Black Edition';
+  const checkoutDesignName = localStorage.getItem('checkout_design_name');
 
   const selectedShipping = useMemo(
     () => SHIPPING_OPTIONS.find((option) => option.id === shippingMethod) || SHIPPING_OPTIONS[0],
@@ -176,7 +178,10 @@ export default function CheckoutPage() {
                 )}
               </div>
               <div>
-                <p className="summary-product__name">Custom Low Sneaker - Black Edition</p>
+                <p className="summary-product__name">{checkoutModelName}</p>
+                {checkoutDesignName && (
+                  <p className="summary-product__meta">Design: {checkoutDesignName}</p>
+                )}
                 <p className="summary-product__meta">Size: US 9</p>
                 <p className="summary-product__meta">Quantity: 1</p>
               </div>
