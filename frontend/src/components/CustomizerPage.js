@@ -83,7 +83,7 @@ function CustomizerLayout() {
                 <h5 className="h6 mb-3">Virtual Try-On</h5>
                 <p className="text-muted small mb-3">See how your custom shoe looks on you.</p>
                 <button
-                  className="btn btn-primary w-100"
+                  className="btn w-100 customizer-tryon-btn"
                   onClick={handleTryOnClick}
                   disabled={!captureFunction}
                 >
