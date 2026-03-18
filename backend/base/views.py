@@ -34,7 +34,7 @@ def getFAQs(request):
     return JsonResponse({'faqs': faq_list})
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST", "OPTIONS"])
 def virtualTryOn(request):
     """
     Virtual Try-On endpoint using Google Vertex AI
@@ -46,6 +46,9 @@ def virtualTryOn(request):
         }, status=500)
     
     try:
+        if request.method == "OPTIONS":
+            return JsonResponse({"ok": True}, status=200)
+
         # Parse request body
         data = json.loads(request.body)
         person_image_b64 = data.get('person_image')

@@ -35,6 +35,11 @@ app.post('/api/subscription/create-order', auth.authenticate, payments.createSub
 app.post('/api/subscription/capture-order', auth.authenticate, payments.captureSubscriptionOrder);
 app.get('/api/payments/history', auth.authenticate, payments.getPaymentHistory);
 
+// Checkout & Order routes
+app.post('/api/checkout/create-order', auth.authenticate, payments.createCheckoutOrder);
+app.post('/api/checkout/capture-order', auth.authenticate, payments.captureCheckoutOrder);
+app.get('/api/checkout/orders', auth.authenticate, payments.getOrderHistory);
+
 app.listen(PORT, () => {
   console.log(`Sneakr.lab API running on http://localhost:${PORT}`);
 });

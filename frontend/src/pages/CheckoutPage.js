@@ -1,5 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
+import {
+  createCheckoutOrder,
+  captureCheckoutOrder
+} from '../services/api';
 import './CheckoutPage.css';
 
 const SHIPPING_OPTIONS = [
@@ -25,8 +30,22 @@ function formatPrice(value) {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [shippingMethod, setShippingMethod] = useState('standard');
-  const [savePayment, setSavePayment] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    fullName: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: ''
+  });
+  const [paypalReady, setPaypalReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const paypalButtonRef = useRef(null);
+  const PAYPAL_CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID;
 
   const shoePreview = localStorage.getItem('checkout_shoe_image') || localStorage.getItem('shoe_image');
   const checkoutModelName = localStorage.getItem('checkout_model_name') || 'Custom Low Sneaker - Black Edition';
@@ -38,6 +57,183 @@ export default function CheckoutPage() {
   );
 
   const total = PRODUCT_PRICE + selectedShipping.price;
+
+  // Load PayPal SDK
+  useEffect(() => {
+    if (!user) {
+      navigate('/signin', { state: { returnTo: '/checkout' } });
+      return;
+    }
+
+    if (!PAYPAL_CLIENT_ID) {
+      setError('Missing PayPal client configuration. Please set REACT_APP_PAYPAL_CLIENT_ID.');
+      return;
+    }
+
+    // Check if PayPal SDK is already loaded
+    if (window.paypal) {
+      setPaypalReady(true);
+      return;
+    }
+
+    // Create script element with better error handling
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&intent=capture`;
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      console.log('PayPal SDK loaded successfully');
+      setPaypalReady(true);
+    };
+    
+    script.onerror = (error) => {
+      console.error('Failed to load PayPal SDK:', error);
+      setError('Failed to load PayPal SDK. Please check your configuration and refresh.');
+    };
+
+    // Add error event listener for network issues
+    script.addEventListener('error', (e) => {
+      console.error('PayPal SDK error event:', e);
+      setError('Network error loading PayPal SDK');
+    });
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Don't remove PayPal SDK as it may be needed elsewhere
+      // Just cleanup our listeners
+      script.removeEventListener('error', () => {});
+    };
+  }, [user, PAYPAL_CLIENT_ID, navigate]);
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCreateCheckoutOrder = useCallback(async () => {
+    try {
+      setError('');
+      console.log('Validating form...');
+      
+      if (!formData.email || !formData.fullName || !formData.address || 
+          !formData.city || !formData.state || !formData.postalCode || !formData.country) {
+        const msg = 'Please fill in all required fields';
+        setError(msg);
+        console.error(msg);
+        throw new Error(msg);
+      }
+      if (!formData.email.includes('@')) {
+        const msg = 'Please enter a valid email address';
+        setError(msg);
+        console.error(msg);
+        throw new Error(msg);
+      }
+
+      console.log('Form validated. Creating order...');
+      setLoading(true);
+      const orderData = await createCheckoutOrder({
+        amount: total.toFixed(2),
+        shippingMethod,
+        modelName: checkoutModelName,
+        designName: checkoutDesignName || undefined,
+        email: formData.email,
+        fullName: formData.fullName,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.postalCode,
+        country: formData.country
+      });
+
+      console.log('Order created successfully:', orderData);
+      return orderData.id;
+    } catch (err) {
+      const errorMsg = err.message || 'Failed to create order';
+      console.error('Checkout order creation error:', err);
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, total, shippingMethod, checkoutModelName, checkoutDesignName]);
+
+  const handleCapturePayment = useCallback(async (orderId) => {
+    try {
+      setLoading(true);
+      const result = await captureCheckoutOrder(orderId);
+      setError('');
+      navigate('/checkout/success', {
+        state: { orderId: result.orderId, amount: result.amount }
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  // Render PayPal buttons
+  useEffect(() => {
+    if (!paypalReady || !window.paypal || !paypalButtonRef.current) {
+      return;
+    }
+
+    try {
+      console.log('Rendering PayPal buttons...');
+      paypalButtonRef.current.innerHTML = '';
+      
+      window.paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal', height: 42 },
+        createOrder: async (data, actions) => {
+          try {
+            console.log('PayPal: Creating order...');
+            const orderId = await handleCreateCheckoutOrder();
+            console.log('PayPal: Order created:', orderId);
+            return orderId;
+          } catch (err) {
+            const msg = err.message || 'Failed to create PayPal order';
+            console.error('PayPal: Create order error:', msg, err);
+            setError(msg);
+            return actions.reject ? actions.reject(err) : Promise.reject(err);
+          }
+        },
+        onApprove: async (data, actions) => {
+          try {
+            console.log('PayPal: Order approved:', data.orderID);
+            await handleCapturePayment(data.orderID);
+            return actions.resolve?.();
+          } catch (err) {
+            console.error('PayPal: Capture error:', err);
+            setError(err.message || 'Payment capture failed. Please try again.');
+            return actions.reject ? actions.reject(err) : Promise.reject(err);
+          }
+        },
+        onCancel: (data) => {
+          console.warn('PayPal: Payment cancelled by user:', data);
+          setError('PayPal payment was canceled. You can try again.');
+        },
+        onError: (err) => {
+          console.error('PayPal: Payment error:', err);
+          const message = err?.message || 'PayPal payment failed due to a script error. Please retry.';
+          setError(message);
+        },
+      }).render(paypalButtonRef.current);
+      
+      console.log('PayPal buttons rendered successfully');
+    } catch (err) {
+      console.error('Error rendering PayPal buttons:', err);
+      setError('Failed to initialize PayPal buttons. Please refresh and try again.');
+    }
+  }, [paypalReady, handleCreateCheckoutOrder, handleCapturePayment]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="checkout-page">
@@ -66,7 +262,14 @@ export default function CheckoutPage() {
               <div className="checkout-field-grid">
                 <label className="checkout-field">
                   <span>Email Address</span>
-                  <input type="email" name="email" placeholder="you@email.com" autoComplete="email" />
+                  <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="you@email.com" 
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                  />
                 </label>
               </div>
             </div>
@@ -76,32 +279,74 @@ export default function CheckoutPage() {
               <div className="checkout-field-grid">
                 <label className="checkout-field checkout-field--full">
                   <span>Full Name</span>
-                  <input type="text" name="fullName" placeholder="Enter full name" autoComplete="name" />
+                  <input 
+                    type="text" 
+                    name="fullName" 
+                    placeholder="Enter full name" 
+                    autoComplete="name"
+                    value={formData.fullName}
+                    onChange={handleFormChange}
+                  />
                 </label>
 
                 <label className="checkout-field checkout-field--full">
                   <span>Address Line</span>
-                  <input type="text" name="address" placeholder="Street address" autoComplete="street-address" />
+                  <input 
+                    type="text" 
+                    name="address" 
+                    placeholder="Street address" 
+                    autoComplete="street-address"
+                    value={formData.address}
+                    onChange={handleFormChange}
+                  />
                 </label>
 
                 <label className="checkout-field">
                   <span>City</span>
-                  <input type="text" name="city" placeholder="City" autoComplete="address-level2" />
+                  <input 
+                    type="text" 
+                    name="city" 
+                    placeholder="City" 
+                    autoComplete="address-level2"
+                    value={formData.city}
+                    onChange={handleFormChange}
+                  />
                 </label>
 
                 <label className="checkout-field">
                   <span>State / Region</span>
-                  <input type="text" name="state" placeholder="State" autoComplete="address-level1" />
+                  <input 
+                    type="text" 
+                    name="state" 
+                    placeholder="State" 
+                    autoComplete="address-level1"
+                    value={formData.state}
+                    onChange={handleFormChange}
+                  />
                 </label>
 
                 <label className="checkout-field">
                   <span>Postal Code</span>
-                  <input type="text" name="postalCode" placeholder="Postal code" autoComplete="postal-code" />
+                  <input 
+                    type="text" 
+                    name="postalCode" 
+                    placeholder="Postal code" 
+                    autoComplete="postal-code"
+                    value={formData.postalCode}
+                    onChange={handleFormChange}
+                  />
                 </label>
 
                 <label className="checkout-field">
                   <span>Country</span>
-                  <input type="text" name="country" placeholder="Country" autoComplete="country-name" />
+                  <input 
+                    type="text" 
+                    name="country" 
+                    placeholder="Country" 
+                    autoComplete="country-name"
+                    value={formData.country}
+                    onChange={handleFormChange}
+                  />
                 </label>
               </div>
             </div>
@@ -133,36 +378,20 @@ export default function CheckoutPage() {
 
             <div className="checkout-section">
               <h2>Payment</h2>
-              <div className="checkout-field-grid">
-                <label className="checkout-field checkout-field--full">
-                  <span>Card Number</span>
-                  <input type="text" name="cardNumber" inputMode="numeric" placeholder="1234 5678 9012 3456" autoComplete="cc-number" />
-                </label>
-
-                <label className="checkout-field">
-                  <span>Expiration Date</span>
-                  <input type="text" name="expDate" placeholder="MM/YY" autoComplete="cc-exp" />
-                </label>
-
-                <label className="checkout-field">
-                  <span>CVV</span>
-                  <input type="text" name="cvv" inputMode="numeric" placeholder="123" autoComplete="cc-csc" />
-                </label>
-
-                <label className="checkout-field checkout-field--full">
-                  <span>Name on Card</span>
-                  <input type="text" name="cardName" placeholder="Name as shown on card" autoComplete="cc-name" />
-                </label>
-              </div>
-
-              <label className="checkout-checkbox">
-                <input
-                  type="checkbox"
-                  checked={savePayment}
-                  onChange={(event) => setSavePayment(event.target.checked)}
-                />
-                <span>Save payment method</span>
-              </label>
+              {error && (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              )}
+              {loading && (
+                <div className="alert alert-info" role="status">
+                  Processing your payment...
+                </div>
+              )}
+              <div ref={paypalButtonRef} />
+              <p className="checkout-trust-copy" style={{ marginTop: '1rem', fontSize: '0.85rem' }}>
+                Secure payment powered by PayPal. Your information is protected.
+              </p>
             </div>
           </div>
 
@@ -202,9 +431,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button className="checkout-cta" type="button">
-              Complete Purchase
-            </button>
             <p className="checkout-trust-copy">Secure payment. Your information is protected.</p>
 
             <ul className="checkout-trust-list" aria-label="Trust details">

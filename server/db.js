@@ -44,8 +44,34 @@ const schema = `
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS orders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    paypal_order_id TEXT UNIQUE NOT NULL,
+    amount REAL NOT NULL,
+    currency TEXT DEFAULT 'USD',
+    status TEXT NOT NULL CHECK (status IN ('CREATED', 'APPROVED', 'COMPLETED', 'FAILED')),
+    shipping_method TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    design_name TEXT,
+    design_image TEXT,
+    email TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    address TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    postal_code TEXT NOT NULL,
+    country TEXT NOT NULL,
+    tracking_number TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
   CREATE INDEX IF NOT EXISTS idx_payments_paypal_order_id ON payments(paypal_order_id);
+  CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+  CREATE INDEX IF NOT EXISTS idx_orders_paypal_order_id ON orders(paypal_order_id);
   CREATE INDEX IF NOT EXISTS idx_designs_user_id ON designs(user_id);
   CREATE INDEX IF NOT EXISTS idx_designs_created_at ON designs(created_at DESC);
 `;
