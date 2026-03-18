@@ -16,7 +16,367 @@ import { getDesignTexture, getDesignOverrides } from '../utils/designTextures';
 /** Target size so every model fits the viewport the same way */
 const NORMALIZED_SIZE = 2;
 
-function applyLayerColorsToScene(scene, designId, layerColors) {
+function getNodePathNames(node) {
+  const names = [];
+  let current = node;
+  while (current) {
+    if (current.name) names.push(current.name.toLowerCase());
+    current = current.parent;
+  }
+  return names;
+}
+
+function normalizeGroupName(name) {
+  return (name || '').toLowerCase().replace(/[\s._-]+/g, '');
+}
+
+function getJordanTopGroupFromPath(node) {
+  const pathNorm = getNodePathNames(node).map(normalizeGroupName);
+  const knownTopGroups = new Set([
+    'accent',
+    'accent2',
+    'backtop',
+    'backtop001',
+    'logo',
+    'logo001',
+    'midsole',
+    'midsole001',
+    'outsole',
+    'shoelace',
+    'shoelace001',
+    'stiching',
+    'stitching',
+    'trim',
+    'upper',
+  ]);
+
+  for (const name of pathNorm) {
+    if (knownTopGroups.has(name)) {
+      return name;
+    }
+  }
+
+  return '';
+}
+
+function getMeshZoneMapping(node, modelId) {
+  const meshName = (node?.name || '').toLowerCase();
+
+  /**
+   * Jordan 1 mapping uses exact top-level groups under RootNode:
+   * Accent, Accent2, Back Top.001, Logo.001, Outsole, Shoelace.001,
+   * Stiching, Trim, Upper
+   */
+  if (modelId === 'jordan1') {
+    const pathNorm = getNodePathNames(node).map(normalizeGroupName);
+    const fullPath = pathNorm.join(' -> ');
+
+    // Resolve by nearest ancestor group from mesh up to root.
+    for (const group of pathNorm) {
+      if (group.startsWith('trim')) {
+        console.log(`✅ TRIM: ${meshName} (path: ${fullPath})`);
+        return { color: 'midsoleRim', zoneName: 'TRIM' };
+      }
+      if (group.startsWith('stiching') || group.startsWith('stitching')) {
+        console.log(`✅ STITCHING: ${meshName} (path: ${fullPath})`);
+        return { color: 'stitching', zoneName: 'STITCHING' };
+      }
+      if (group.startsWith('shoelace')) {
+        console.log(`✅ LACES: ${meshName} (path: ${fullPath})`);
+        return { color: 'laces', zoneName: 'LACES' };
+      }
+      if (group.startsWith('logo')) {
+        console.log(`✅ LOGO: ${meshName} (path: ${fullPath})`);
+        return { color: 'logo', zoneName: 'LOGO' };
+      }
+      if (group.startsWith('accent2') || group.startsWith('accent')) {
+        console.log(`✅ ACCENT: ${meshName} (path: ${fullPath})`);
+        return { color: 'accent', zoneName: 'ACCENT' };
+      }
+      if (group.startsWith('outsole')) {
+        console.log(`✅ OUTSOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'sole', zoneName: 'SOLE' };
+      }
+      if (group.startsWith('midsole')) {
+        console.log(`✅ MIDSOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'midsole', zoneName: 'MIDSOLE' };
+      }
+      if (group.startsWith('backtop') || group.startsWith('upper')) {
+        if (meshName.includes('main') && meshName.includes('sole')) {
+          console.log(`✅ MIDSOLE (via name): ${meshName} (path: ${fullPath})`);
+          return { color: 'midsole', zoneName: 'MIDSOLE' };
+        }
+        console.log(`✅ UPPER (hierarchy): ${meshName} (path: ${fullPath})`);
+        return { color: 'upper', zoneName: 'UPPER' };
+      }
+    }
+
+    // Name fallbacks only when hierarchy groups are unavailable.
+    const meshNameNoSuffix = meshName.replace(/_[a-z0-9]+$/, ''); // Remove trailing _E_0, _001, etc.
+    const meshNameNormalized = meshNameNoSuffix.replace(/[\s._-]+/g, ''); // Remove all separators
+    
+    // Outsole-specific meshes FIRST (circle, tubes are ONLY in outsole)
+    if (meshName.includes('circle') || meshName.includes('tube')) {
+      console.log(`✅ OUTSOLE (fallback - circle/tube): ${meshName} (path: ${fullPath})`);
+      return { color: 'sole', zoneName: 'SOLE' };
+    }
+    
+    if (meshNameNormalized.includes('undersoleplate')) {
+      console.log(`✅ OUTSOLE (fallback - undersoleplate): ${meshName} (path: ${fullPath})`);
+      return { color: 'sole', zoneName: 'SOLE' };
+    }
+    
+    // Midsole fallback only for very specific names
+    if (meshName.includes('main') && meshName.includes('sole')) {
+      console.log(`✅ MIDSOLE (fallback - main sole): ${meshName} (path: ${fullPath})`);
+      return { color: 'midsole', zoneName: 'MIDSOLE' };
+    }
+    if (meshName.includes('seam')) {
+      console.log(`✅ STITCHING (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'stitching', zoneName: 'STITCHING' };
+    }
+    if (meshName.includes('shoelace') || meshName.includes('lace')) {
+      console.log(`✅ LACES (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'laces', zoneName: 'LACES' };
+    }
+    if (meshName.includes('logo') || meshName.includes('nike')) {
+      console.log(`✅ LOGO (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'logo', zoneName: 'LOGO' };
+    }
+    if (meshName.includes('label') || meshName.includes('insert')) {
+      console.log(`✅ ACCENT (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'accent', zoneName: 'ACCENT' };
+    }
+    if (meshName.includes('trim')) {
+      console.log(`✅ TRIM (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'midsoleRim', zoneName: 'TRIM' };
+    }
+
+    console.log(`⚠️ UPPER (default): ${meshName} (path: ${fullPath})`);
+    return { color: 'upper', zoneName: 'UPPER' };
+  }
+  
+  /**
+   * Nike Air Zoom Alphafly Mapping
+   */
+  if (modelId === 'nike-alphafly') {
+    const pathNorm = getNodePathNames(node).map(normalizeGroupName);
+    const fullPath = pathNorm.join(' -> ');
+
+    for (const group of pathNorm) {
+      if (group.startsWith('logo')) {
+        console.log(`✅ LOGO: ${meshName} (path: ${fullPath})`);
+        return { color: 'accent', zoneName: 'LOGO' };
+      }
+      if (group.startsWith('laces')) {
+        console.log(`✅ LACES: ${meshName} (path: ${fullPath})`);
+        return { color: 'laces', zoneName: 'LACES' };
+      }
+      if (group.startsWith('accent')) {
+        console.log(`✅ ACCENT: ${meshName} (path: ${fullPath})`);
+        return { color: 'midsoleRim', zoneName: 'ACCENT' };
+      }
+      if (group.startsWith('outsole')) {
+        console.log(`✅ SOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'sole', zoneName: 'SOLE' };
+      }
+      if (group.startsWith('sole')) {
+        console.log(`✅ SOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'sole', zoneName: 'SOLE' };
+      }
+      if (group.startsWith('tongue')) {
+        console.log(`✅ TONGUE: ${meshName} (path: ${fullPath})`);
+        return { color: 'stitching', zoneName: 'TONGUE' };
+      }
+      if (group.includes('main') || group.includes('upper')) {
+        console.log(`✅ UPPER: ${meshName} (path: ${fullPath})`);
+        return { color: 'upper', zoneName: 'UPPER' };
+      }
+    }
+
+    // Fallback name matching
+    if (meshName.includes('logo') || meshName.includes('nike')) {
+      console.log(`✅ LOGO (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'accent', zoneName: 'LOGO' };
+    }
+    if (meshName.includes('lace')) {
+      console.log(`✅ LACES (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'laces', zoneName: 'LACES' };
+    }
+    if (meshName.includes('tongue')) {
+      console.log(`✅ TONGUE (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'stitching', zoneName: 'TONGUE' };
+    }
+
+    console.log(`⚠️ UPPER (default): ${meshName} (path: ${fullPath})`);
+    return { color: 'upper', zoneName: 'UPPER' };
+  }
+
+  /**
+   * Converse Chuck Taylor Mapping
+   */
+  if (modelId === 'converse-chuck') {
+    const pathNorm = getNodePathNames(node).map(normalizeGroupName);
+    const fullPath = pathNorm.join(' -> ');
+
+    for (const group of pathNorm) {
+      if (group.includes('leathermain')) {
+        console.log(`✅ LEATHER_MAIN: ${meshName} (path: ${fullPath})`);
+        return { color: 'LEATHER_MAIN', zoneName: 'LEATHER_MAIN' };
+      }
+      if (group.includes('eyelets')) {
+        console.log(`✅ EYELETS: ${meshName} (path: ${fullPath})`);
+        return { color: 'EYELETS', zoneName: 'EYELETS' };
+      }
+      if (group.includes('heelcap')) {
+        console.log(`✅ HEELCAP: ${meshName} (path: ${fullPath})`);
+        return { color: 'HEELCAP', zoneName: 'HEELCAP' };
+      }
+      if (group.includes('insole')) {
+        console.log(`✅ INSOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'INSOLE', zoneName: 'INSOLE' };
+      }
+      if (group.includes('laces')) {
+        console.log(`✅ LACES: ${meshName} (path: ${fullPath})`);
+        return { color: 'LACES', zoneName: 'LACES' };
+      }
+      if (group.includes('midsole')) {
+        console.log(`✅ MIDSOLE.001: ${meshName} (path: ${fullPath})`);
+        return { color: 'MIDSOLE.001', zoneName: 'MIDSOLE.001' };
+      }
+      if (group.includes('outersole')) {
+        console.log(`✅ OUTERSOLE: ${meshName} (path: ${fullPath})`);
+        return { color: 'OUTERSOLE', zoneName: 'OUTERSOLE' };
+      }
+      if (group.includes('stitches') || group.includes('stitching')) {
+        console.log(`✅ STITCHES: ${meshName} (path: ${fullPath})`);
+        return { color: 'STITCHES', zoneName: 'STITCHES' };
+      }
+      if (group.includes('tags')) {
+        console.log(`✅ TAGS: ${meshName} (path: ${fullPath})`);
+        return { color: 'TAGS', zoneName: 'TAGS' };
+      }
+      if (group.includes('toetip')) {
+        console.log(`✅ TOETIP: ${meshName} (path: ${fullPath})`);
+        return { color: 'TOETIP', zoneName: 'TOETIP' };
+      }
+      if (group.includes('tongue')) {
+        console.log(`✅ TONGUE: ${meshName} (path: ${fullPath})`);
+        return { color: 'TONGUE', zoneName: 'TONGUE' };
+      }
+    }
+
+    // Fallback name matching for converse
+    if (meshName.includes('leathermain')) {
+      console.log(`✅ LEATHER_MAIN (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'LEATHER_MAIN', zoneName: 'LEATHER_MAIN' };
+    }
+    if (meshName.includes('eyelet')) {
+      console.log(`✅ EYELETS (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'EYELETS', zoneName: 'EYELETS' };
+    }
+    if (meshName.includes('heel')) {
+      console.log(`✅ HEELCAP (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'HEELCAP', zoneName: 'HEELCAP' };
+    }
+    if (meshName.includes('insole')) {
+      console.log(`✅ INSOLE (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'INSOLE', zoneName: 'INSOLE' };
+    }
+    if (meshName.includes('lace')) {
+      console.log(`✅ LACES (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'LACES', zoneName: 'LACES' };
+    }
+    if (meshName.includes('midsole')) {
+      console.log(`✅ MIDSOLE.001 (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'MIDSOLE.001', zoneName: 'MIDSOLE.001' };
+    }
+    if (meshName.includes('sole')) {
+      console.log(`✅ OUTERSOLE (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'OUTERSOLE', zoneName: 'OUTERSOLE' };
+    }
+    if (meshName.includes('stitch')) {
+      console.log(`✅ STITCHES (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'STITCHES', zoneName: 'STITCHES' };
+    }
+    if (meshName.includes('tag')) {
+      console.log(`✅ TAGS (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'TAGS', zoneName: 'TAGS' };
+    }
+    if (meshName.includes('toe')) {
+      console.log(`✅ TOETIP (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'TOETIP', zoneName: 'TOETIP' };
+    }
+    if (meshName.includes('tongue')) {
+      console.log(`✅ TONGUE (fallback): ${meshName} (path: ${fullPath})`);
+      return { color: 'TONGUE', zoneName: 'TONGUE' };
+    }
+
+    console.log(`⚠️ LEATHER_MAIN (default): ${meshName} (path: ${fullPath})`);
+    return { color: 'LEATHER_MAIN', zoneName: 'LEATHER_MAIN (default)' };
+  }
+  
+  /**
+   * Air Force / Standard Model Mapping
+   */
+  // Stitching zone
+  if (meshName.includes('stitch') || 
+      meshName.startsWith('plane003') || 
+      meshName.startsWith('plane005') || 
+      meshName.startsWith('plane006') || 
+      meshName.startsWith('plane007') || 
+      meshName.startsWith('plane008') || 
+      meshName.startsWith('plane009') || 
+      meshName.startsWith('plane010') || 
+      meshName.startsWith('plane011') || 
+      meshName.startsWith('plane012')) {
+    return { color: 'stitching', zoneName: 'STITCHING' };
+  }
+  // Trim zone
+  if (meshName.includes('_rim') || 
+      meshName.includes('trim') || 
+      meshName.includes('fine leather')) {
+    return { color: 'midsoleRim', zoneName: 'TRIM' };
+  }
+  // Swoosh / Logo
+  if (meshName.includes('logo') || 
+      meshName.includes('nike') ||
+      meshName.includes('air_') ||
+      meshName.includes('swoosh')) {
+    return { color: 'accent', zoneName: 'SWOOSH' };
+  }
+  // Outsole
+  if (meshName.includes('outsole') || 
+      (meshName.includes('plane') && meshName.includes('material') && meshName.includes('010_0'))) {
+    return { color: 'sole', zoneName: 'OUTSOLE' };
+  }
+  // Midsole
+  if ((meshName.includes('mid') && meshName.includes('sole')) || 
+      (meshName.includes('midsole') && !meshName.includes('_rim'))) {
+    return { color: 'midsole', zoneName: 'MIDSOLE' };
+  }
+  // Heel
+  if (meshName.includes('heel')) {
+    return { color: 'heel', zoneName: 'HEEL TAB' };
+  }
+  // Laces
+  if (meshName.includes('lace')) {
+    return { color: 'laces', zoneName: 'LACES' };
+  }
+  // Main / Upper
+  if (meshName.includes('main') || 
+      meshName.includes('inside fabric') || 
+      meshName.includes('toe box') ||
+      meshName.includes('quarter') ||
+      meshName.includes('upper')) {
+    return { color: 'upper', zoneName: 'UPPER' };
+  }
+  
+  // Default
+  return { color: 'upper', zoneName: 'UPPER (default)' };
+}
+
+function applyLayerColorsToScene(scene, designId, layerColors, modelId = 'airforce') {
   console.log('🎨 === COLOR APPLICATION START ===');
   console.log('Layer Colors:', layerColors);
   
@@ -35,82 +395,9 @@ function applyLayerColorsToScene(scene, designId, layerColors) {
     // Log mesh names for debugging
     console.log(`\n📦 Found mesh: "${child.name || 'unnamed'}"`);
     
-    const meshName = (child.name || '').toLowerCase();
-    let targetColor = null;
-    let zoneName = '';
-    
-    // Map mesh names to color zones - ORDER MATTERS!
-    // Check most specific patterns first based on Blender hierarchy
-    
-    // Stitching zone: FIRST - STICHES group meshes (Plane003-012 with underscores)
-    if (meshName.includes('stitch') || 
-        meshName.startsWith('plane003') || 
-        meshName.startsWith('plane005') || 
-        meshName.startsWith('plane006') || 
-        meshName.startsWith('plane007') || 
-        meshName.startsWith('plane008') || 
-        meshName.startsWith('plane009') || 
-        meshName.startsWith('plane010') || 
-        meshName.startsWith('plane011') || 
-        meshName.startsWith('plane012')) {
-      targetColor = layerColors.stitching;
-      zoneName = 'STITCHING';
-    }
-    // Trim zone: Check for _rim or trim BEFORE midsole (to catch Midsole_rim)
-    else if (meshName.includes('_rim') || 
-             meshName.includes('trim') || 
-             meshName.includes('fine leather')) {
-      targetColor = layerColors.midsoleRim;
-      zoneName = 'TRIM';
-    }
-    // Swoosh zone: Nike Logo, Air Logo - check BEFORE Main (to catch Air_Logomain)
-    else if (meshName.includes('logo') || 
-             meshName.includes('nike') ||
-             meshName.includes('air_') ||
-             meshName.includes('swoosh')) {
-      targetColor = layerColors.accent;
-      zoneName = 'SWOOSH';
-    }
-    // Outsole zone: OUTSOLE, OUTSOLE2, Plane_Material.010_0 (specific)
-    else if (meshName.includes('outsole') || 
-        (meshName.includes('plane') && meshName.includes('material') && meshName.includes('010_0'))) {
-      targetColor = layerColors.sole;
-      zoneName = 'OUTSOLE';
-    }
-    // Midsole zone: Midsole, MID SOLE (but not _rim)
-    else if ((meshName.includes('mid') && meshName.includes('sole')) || 
-             (meshName.includes('midsole') && !meshName.includes('_rim'))) {
-      targetColor = layerColors.midsole;
-      zoneName = 'MIDSOLE';
-    }
-    // Heel zone: Heel
-    else if (meshName.includes('heel')) {
-      targetColor = layerColors.heel;
-      zoneName = 'HEEL TAB';
-    } 
-    // Laces zone: Lace Main
-    else if (meshName.includes('lace')) {
-      targetColor = layerColors.laces;
-      zoneName = 'LACES';
-    } 
-    // Main zone: Main, Inside Fabric, TOE BOX
-    else if (meshName.includes('main') || 
-             meshName.includes('inside fabric') || 
-             meshName.includes('toe box') ||
-             meshName.includes('quarter')) {
-      targetColor = layerColors.upper;
-      zoneName = 'MAIN';
-    } 
-    // Upper zone fallback
-    else if (meshName.includes('upper')) {
-      targetColor = layerColors.upper;
-      zoneName = 'UPPER';
-    } 
-    // Final default: unnamed objects go to upper color
-    else {
-      targetColor = layerColors.upper;
-      zoneName = 'UPPER (default)';
-    }
+    const mapping = getMeshZoneMapping(child, modelId);
+    const targetColor = layerColors[mapping.color];
+    const zoneName = mapping.zoneName;
     
     console.log(`  ✅ Zone: ${zoneName}`);
     console.log(`  🎨 Color: ${targetColor}`);
@@ -194,11 +481,17 @@ function ShoeModel({ asset, modelId, designId, layerColors, logoUrl, hasWatermar
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
     const scale = NORMALIZED_SIZE / maxDim;
     
-    // Store original materials
+    // Store original materials and de-share geometry so zone colors don't bleed
+    // across meshes that reuse the same underlying BufferGeometry.
     originalMaterials.current.clear();
     s.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material) {
-        originalMaterials.current.set(child, child.material.clone());
+      if (child instanceof THREE.Mesh) {
+        if (child.geometry) {
+          child.geometry = child.geometry.clone();
+        }
+        if (child.material) {
+          originalMaterials.current.set(child, child.material.clone());
+        }
       }
     });
     
@@ -216,7 +509,7 @@ function ShoeModel({ asset, modelId, designId, layerColors, logoUrl, hasWatermar
       }
     });
     
-    applyLayerColorsToScene(clonedScene, designId, layerColors);
+    applyLayerColorsToScene(clonedScene, designId, layerColors, modelId);
   }, [clonedScene, designId, layerColors]);
 
   const rotX = asset.rotationX ?? 0;

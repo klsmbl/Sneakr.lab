@@ -73,6 +73,12 @@ export const SNEAKER_MODEL_ASSETS = {
     rotationY: -Math.PI / 4,
     rotationX: 0.1,
   },
+  'converse-chuck': {
+    url: '/models/converse.glb',
+    scale: 1.9,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
+  },
 };
 
 export function getSneakerAsset(modelId) {

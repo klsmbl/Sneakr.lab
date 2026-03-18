@@ -5,6 +5,7 @@
 
 export const SNEAKER_MODELS = [
   { id: 'classic-1', name: 'Classic Low', premiumOnly: false },
+  { id: 'converse-chuck', name: 'Converse Chuck Taylor', premiumOnly: false },
 ];
 
 export const FREE_COLORS = ['#000000', '#FFFFFF', '#C41E3A', '#0066B3', '#228B22'];
