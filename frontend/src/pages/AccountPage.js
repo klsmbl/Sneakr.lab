@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { getOrderHistory } from '../services/api';
 import Footer from '../Footer';
 import './AccountPage.css';
 
@@ -41,9 +42,27 @@ export default function AccountPage() {
       .toUpperCase()
   ), [profile.name]);
 
-  // Real orders/design integrations are not implemented yet, so default to empty.
-  const orders = [];
-  const savedDesigns = [];
+  const [orders, setOrders] = useState([]);
+  const [savedDesigns] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState('');
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setOrdersLoading(true);
+        const fetchedOrders = await getOrderHistory();
+        setOrders(fetchedOrders);
+      } catch (err) {
+        setOrdersError(err.message || 'Failed to load your orders.');
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
 
   const handleMenuClick = (sectionId) => {
     setActiveSection(sectionId);
@@ -123,16 +142,27 @@ export default function AccountPage() {
               <h2>My Orders</h2>
               <button type="button" className="account-btn">View All Orders</button>
             </div>
-            {orders.length === 0 ? (
+            {ordersLoading ? (
+              <div className="account-card account-empty-state">
+                <p>Loading your orders...</p>
+              </div>
+            ) : ordersError ? (
+              <div className="account-card account-empty-state">
+                <p>{ordersError}</p>
+              </div>
+            ) : orders.length === 0 ? (
               <div className="account-card account-empty-state">
                 <p>No orders yet. Completed purchases will appear here.</p>
               </div>
             ) : (
               <div className="account-order-grid">
                 {orders.map((order) => (
-                  <article className="account-card account-order-card" key={order.orderId}>
-                    <h3>{order.title}</h3>
-                    <p>Order ID: {order.orderId}</p>
+                  <article className="account-card account-order-card" key={order.id}>
+                    <h3>{order.model_name || 'Custom Sneaker Order'}</h3>
+                    <p>Order ID: {order.paypal_order_id || order.id}</p>
+                    <p>
+                      Total: ${parseFloat(order.amount || 0).toFixed(2)}
+                    </p>
                     <p>
                       Status: <strong>{order.status}</strong>
                     </p>
