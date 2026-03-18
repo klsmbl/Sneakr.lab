@@ -29,7 +29,10 @@ function Footer() {
     };
   }, []);
   // Column 1 - Custom Shoes Collections
-  const shoesLinks = ['All Custom Shoes', ...SNEAKER_MODELS.map((model) => model.name)];
+  const shoesLinks = [
+    { label: 'All Custom Shoes', model: null },
+    ...SNEAKER_MODELS.map((model) => ({ label: model.name, model })),
+  ];
 
   // Column 2 - About Us
   const aboutLinks = [
@@ -55,8 +58,23 @@ function Footer() {
             <ul className="footer__list">
               {shoesLinks.map((link, index) => (
                 <li key={index}>
-                  <a href="#" className="footer__link">
-                    {link}
+                  <a
+                    href="#"
+                    className="footer__link"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!link.model) {
+                        navigate('/choose-shoe', { state: { showFooterLoader: true } });
+                        return;
+                      }
+
+                      const modelName = encodeURIComponent(link.model.name);
+                      navigate(`/confirm-shoe?model=${link.model.id}&name=${modelName}`, {
+                        state: { showFooterLoader: true },
+                      });
+                    }}
+                  >
+                    {link.label}
                   </a>
                 </li>
               ))}
