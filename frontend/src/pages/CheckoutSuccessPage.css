@@ -1,0 +1,379 @@
+/**
+ * Sneakr.lab - Checkout Success Page Styles
+ */
+
+.checkout-success-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 4rem;
+}
+
+.checkout-success-page__texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.checkout-success-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.checkout-success-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+/* Success Icon */
+.success-icon-wrapper {
+  margin-bottom: 2rem;
+  animation: slideDown 0.6s ease-out;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+  animation: scaleIn 0.6s ease-out;
+}
+
+.success-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.success-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* Order Details */
+.order-details {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: left;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+  gap: 1rem;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-value {
+  color: #fff;
+  font-size: 0.95rem;
+  text-align: right;
+  flex: 1;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge--completed {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+/* Success Message */
+.success-message {
+  margin: 2.5rem 0;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.success-message h2 {
+  font-size: 1.3rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.next-steps {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.next-steps li {
+  padding: 0.75rem 0;
+  padding-left: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  position: relative;
+}
+
+.next-steps li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Loading State */
+.success-loading {
+  padding: 2rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.success-loading p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+/* Success Actions */
+.success-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 2.5rem 0;
+  flex-direction: column;
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+@media (min-width: 640px) {
+  .success-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.btn {
+  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Trust Info */
+.success-trust-info {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.success-trust-info h3 {
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.success-trust-info p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  margin: 0.5rem 0;
+}
+
+.success-trust-info a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.success-trust-info a:hover {
+  color: #ffed4e;
+  text-decoration: underline;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .checkout-success-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .success-title {
+    font-size: 2rem;
+  }
+
+  .success-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2.5rem;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .order-details {
+    padding: 1.5rem;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-success-card {
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
+
+  .success-title {
+    font-size: 1.5rem;
+  }
+
+  .success-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .success-message h2 {
+    font-size: 1.1rem;
+  }
+
+  .order-details {
+    padding: 1rem;
+  }
+
+  .detail-row {
+    padding: 0.75rem 0;
+  }
+
+  .detail-label,
+  .detail-value {
+    font-size: 0.9rem;
+  }
+}
+
+/* Alert Styles */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.alert-warning {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  color: #ffc107;
+}

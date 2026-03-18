@@ -129,3 +129,44 @@ export async function getPaymentHistory() {
   if (!res.ok) throw new Error('Failed to get payment history');
   return res.json();
 }
+
+// Checkout and Order APIs
+export async function createCheckoutOrder(orderData) {
+  const res = await fetch(`${API_BASE}/api/checkout/create-order`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(orderData)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to create order' }));
+    throw new Error(err.error || 'Failed to create order');
+  }
+  return res.json();
+}
+
+export async function captureCheckoutOrder(orderId) {
+  const res = await fetch(`${API_BASE}/api/checkout/capture-order`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify({ orderId })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Failed to capture payment' }));
+    throw new Error(err.error || 'Failed to capture payment');
+  }
+  return res.json();
+}
+
+export async function getOrderHistory() {
+  const res = await fetch(`${API_BASE}/api/checkout/orders`, {
+    headers: getAuthHeader()
+  });
+  if (!res.ok) throw new Error('Failed to get order history');
+  return res.json();
+}

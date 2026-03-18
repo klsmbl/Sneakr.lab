@@ -16,6 +16,7 @@ async function getPayPalAccessToken() {
       throw new Error('PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set in server environment');
     }
 
+    console.log('Getting PayPal access token...');
     const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
     const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
       method: 'POST',
@@ -27,10 +28,13 @@ async function getPayPalAccessToken() {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get access token');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('PayPal auth failed:', response.status, errorData);
+      throw new Error(`PayPal auth failed: ${response.status} ${JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
+    console.log('PayPal auth successful');
     return data.access_token;
   } catch (err) {
     console.error('PayPal auth error:', err);
@@ -206,5 +210,188 @@ export async function getPaymentHistory(req, res) {
   } catch (err) {
     console.error('Get payment history error:', err);
     res.status(500).json({ error: 'Failed to get payment history' });
+  }
+}
+
+// Create PayPal order for checkout
+export async function createCheckoutOrder(req, res) {
+  try {
+    const {
+      amount,
+      shippingMethod,
+      modelName,
+      designName,
+      email,
+      fullName,
+      address,
+      city,
+      state,
+      postalCode,
+      country
+    } = req.body;
+
+    // Validate required fields
+    if (!amount || !shippingMethod || !modelName || !email || !fullName || !address || !city || !state || !postalCode || !country) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    console.log('Creating checkout order for user:', req.user.id, 'Amount:', amount);
+
+    const accessToken = await getPayPalAccessToken();
+    console.log('Got PayPal access token successfully');
+
+    const orderPayload = {
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: amount.toString()
+          },
+          description: `Custom Sneaker - ${modelName}`
+        }
+      ],
+      application_context: {
+        brand_name: 'Sneakr.lab',
+        user_action: 'PAY_NOW',
+        return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success`,
+        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout`
+      }
+    };
+
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(orderPayload)
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error('PayPal order creation failed:', err);
+      return res.status(400).json({ error: 'Failed to create PayPal order', paypalError: err });
+    }
+
+    const orderData = await response.json();
+    const orderId = orderData.id;
+    console.log('PayPal order created:', orderId);
+
+    // Store order in database
+    const checkoutOrderId = randomUUID();
+    const stmt = db.prepare(
+      `INSERT INTO orders (
+        id, user_id, paypal_order_id, amount, currency, status,
+        shipping_method, model_name, design_name,
+        email, full_name, address, city, state, postal_code, country
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    stmt.run(
+      checkoutOrderId,
+      req.user.id,
+      orderId,
+      amount,
+      'USD',
+      'CREATED',
+      shippingMethod,
+      modelName,
+      designName || null,
+      email,
+      fullName,
+      address,
+      city,
+      state,
+      postalCode,
+      country
+    );
+
+    res.json({
+      id: orderId,
+      status: orderData.status
+    });
+  } catch (err) {
+    console.error('Create checkout order error:', err);
+    res.status(500).json({ error: 'Failed to create order: ' + err.message });
+  }
+}
+
+// Capture PayPal order for checkout
+export async function captureCheckoutOrder(req, res) {
+  try {
+    const { orderId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const accessToken = await getPayPalAccessToken();
+
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error('PayPal capture error:', err);
+      return res.status(400).json({
+        error: 'Payment capture failed',
+        details: err
+      });
+    }
+
+    const captureData = await response.json();
+
+    if (!captureData || captureData.status !== 'COMPLETED') {
+      return res.status(400).json({
+        error: 'Payment not completed',
+        status: captureData?.status || 'UNKNOWN'
+      });
+    }
+
+    const captureAmount = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
+    const captureCurrency = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.currency_code;
+
+    if (!captureAmount) {
+      console.warn('Capture amount missing in PayPal capture response', captureData);
+    }
+
+    // Update order status
+    const updateStmt = db.prepare(
+      'UPDATE orders SET status = ?, updated_at = ? WHERE paypal_order_id = ?'
+    );
+    const now = new Date().toISOString();
+    updateStmt.run('COMPLETED', now, orderId);
+
+    res.json({
+      success: true,
+      orderId: orderId,
+      amount: captureAmount || '0.00',
+      currency: captureCurrency || 'USD'
+    });
+  } catch (err) {
+    console.error('Capture checkout order error:', err);
+    res.status(500).json({ error: 'Failed to capture order: ' + err.message });
+  }
+}
+
+// Get order history
+export async function getOrderHistory(req, res) {
+  try {
+    const stmt = db.prepare(
+      `SELECT id, paypal_order_id, amount, currency, status, shipping_method,
+              model_name, design_name, full_name, email, created_at, updated_at
+       FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`
+    );
+    const orders = stmt.all(req.user.id);
+
+    res.json(orders);
+  } catch (err) {
+    console.error('Get order history error:', err);
+    res.status(500).json({ error: 'Failed to get order history' });
   }
 }
