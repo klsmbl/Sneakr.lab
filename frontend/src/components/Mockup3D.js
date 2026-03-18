@@ -308,7 +308,7 @@ function Scene({ modelId, designId, layerColors, logoUrl, showWatermark }) {
   );
 }
 
-export function Mockup3D({ onCaptureReady, minimal = false }) {
+export function Mockup3D({ onCaptureReady, minimal = false, embedded = false }) {
   const { design } = useDesign();
   const { canRemoveWatermark } = useSubscription();
   const showWatermark = false;
@@ -332,6 +332,48 @@ export function Mockup3D({ onCaptureReady, minimal = false }) {
     }
   }, [onCaptureReady]);
 
+  const stage = (
+    <>
+      <div
+        ref={(el) => {
+          containerRef.current = el;
+          canvasRef.current = el;
+        }}
+        className={`rounded overflow-hidden d-flex align-items-center justify-content-center mockup3d-stage ${minimal ? 'mockup3d-stage--minimal' : ''}`}
+        style={{ height: minimal ? 500 : 320 }}
+        onPointerDown={() => setIsDragging(true)}
+        onPointerUp={() => setIsDragging(false)}
+        onPointerLeave={() => setIsDragging(false)}
+      >
+        <Canvas
+          camera={{ position: [1.8, 1, 1.8], fov: 42 }}
+          gl={{ antialias: true, preserveDrawingBuffer: true }}
+          style={{ width: '100%', height: '100%', cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
+          <Suspense fallback={null} key={design.modelId}>
+            <Scene
+              modelId={design.modelId}
+              designId={design.designId}
+              layerColors={design.layerColors}
+              logoUrl={design.logoUrl}
+              showWatermark={showWatermark}
+            />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      {showWatermark && (
+        <p className="text-muted small mt-2 mb-0">
+          Watermark removed for premium users.
+        </p>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return stage;
+  }
+
   return (
     <section className={`card shadow-sm mb-4 ${minimal ? 'customizer-panel-card customizer-panel-card--minimal' : ''}`}>
       <div className="card-body">
@@ -344,39 +386,7 @@ export function Mockup3D({ onCaptureReady, minimal = false }) {
           </>
         )}
 
-        <div
-          ref={(el) => {
-            containerRef.current = el;
-            canvasRef.current = el;
-          }}
-          className={`rounded overflow-hidden d-flex align-items-center justify-content-center mockup3d-stage ${minimal ? 'mockup3d-stage--minimal' : ''}`}
-          style={{ height: minimal ? 500 : 320 }}
-          onPointerDown={() => setIsDragging(true)}
-          onPointerUp={() => setIsDragging(false)}
-          onPointerLeave={() => setIsDragging(false)}
-        >
-          <Canvas
-            camera={{ position: [1.8, 1, 1.8], fov: 42 }}
-            gl={{ antialias: true, preserveDrawingBuffer: true }}
-            style={{ width: '100%', height: '100%', cursor: isDragging ? 'grabbing' : 'grab' }}
-          >
-            <Suspense fallback={null} key={design.modelId}>
-              <Scene
-                modelId={design.modelId}
-                designId={design.designId}
-                layerColors={design.layerColors}
-                logoUrl={design.logoUrl}
-                showWatermark={showWatermark}
-              />
-            </Suspense>
-          </Canvas>
-        </div>
-
-        {showWatermark && (
-          <p className="text-muted small mt-2 mb-0">
-            Watermark removed for premium users.
-          </p>
-        )}
+        {stage}
       </div>
     </section>
   );

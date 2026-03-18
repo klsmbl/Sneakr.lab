@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { SNEAKER_MODELS } from './data/sneakerOptions';
 import './Footer.css';
 
 function Footer() {
@@ -28,19 +29,7 @@ function Footer() {
     };
   }, []);
   // Column 1 - Custom Shoes Collections
-  const shoesLinks = [
-    'All Custom Shoes',
-    'Best Sellers',
-    'Custom Basketball Shoes',
-    'Custom Low-Tops Sneakers',
-    'Custom High-Tops',
-    'Custom Boots',
-    'Custom Kids Shoes',
-    'Custom Sandals',
-    'Other Custom Products',
-    'All Customizable Products',
-    'Cool Shoes'
-  ];
+  const shoesLinks = ['All Custom Shoes', ...SNEAKER_MODELS.map((model) => model.name)];
 
   // Column 2 - About Us
   const aboutLinks = [

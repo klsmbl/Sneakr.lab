@@ -56,59 +56,75 @@ def virtualTryOn(request):
                 'error': 'Both person_image and shoe_image are required'
             }, status=400)
         
-        # Initialize Vertex AI
+        # Initialize Vertex AI credentials.
+        # Supports either:
+        # 1) API key mode: VERTEX_API_KEY (or GOOGLE_API_KEY) + VERTEX_PROJECT_ID
+        # 2) Service account mode: GOOGLE_APPLICATION_CREDENTIALS or ./service-account.json
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
-        env_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
-        default_credentials_path = os.path.join(BASE_DIR, 'service-account.json')
-        service_account_path = env_credentials_path or default_credentials_path
+        vertex_api_key = os.getenv('VERTEX_API_KEY', '').strip() or os.getenv('GOOGLE_API_KEY', '').strip()
+        env_project_id = os.getenv('VERTEX_PROJECT_ID', '').strip()
 
-        if not os.path.exists(service_account_path):
-            return JsonResponse({
-                'error': (
-                    'Google service account credentials not found. '
-                    'Set GOOGLE_APPLICATION_CREDENTIALS or place service-account.json in the project root.'
-                )
-            }, status=500)
-        
-        # Set credentials
-        credentials = service_account.Credentials.from_service_account_file(
-            service_account_path,
-            scopes=['https://www.googleapis.com/auth/cloud-platform']
-        )
-        
-        # Read project ID from service account file
-        with open(service_account_path, 'r') as f:
-            service_account_info = json.load(f)
-            project_id = service_account_info.get('project_id')
-        
-        if not project_id:
-            return JsonResponse({
-                'error': 'Project ID not found in service-account.json'
-            }, status=500)
+        auth_mode = 'service-account'
+        access_token = None
+        project_id = env_project_id
+
+        if vertex_api_key:
+            auth_mode = 'api-key'
+            if not project_id:
+                return JsonResponse({
+                    'error': 'VERTEX_PROJECT_ID is required when using VERTEX_API_KEY/GOOGLE_API_KEY'
+                }, status=500)
+        else:
+            env_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
+            default_credentials_path = os.path.join(BASE_DIR, 'service-account.json')
+            service_account_path = env_credentials_path or default_credentials_path
+
+            if not os.path.exists(service_account_path):
+                return JsonResponse({
+                    'error': (
+                        'Vertex credentials not found. Provide VERTEX_API_KEY + VERTEX_PROJECT_ID '
+                        'or set GOOGLE_APPLICATION_CREDENTIALS/place service-account.json in the project root.'
+                    )
+                }, status=500)
+
+            credentials = service_account.Credentials.from_service_account_file(
+                service_account_path,
+                scopes=['https://www.googleapis.com/auth/cloud-platform']
+            )
+
+            with open(service_account_path, 'r') as f:
+                service_account_info = json.load(f)
+                project_id = project_id or service_account_info.get('project_id')
+
+            if not project_id:
+                return JsonResponse({
+                    'error': 'Project ID not found. Set VERTEX_PROJECT_ID or include it in service-account.json'
+                }, status=500)
+
+            from google.auth.transport.requests import Request
+            credentials.refresh(Request())
+            access_token = credentials.token
         
         # Clean base64 data (remove data URL prefix if present)
         person_image_b64_clean = person_image_b64.split(',')[-1] if ',' in person_image_b64 else person_image_b64
         shoe_image_b64_clean = shoe_image_b64.split(',')[-1] if ',' in shoe_image_b64 else shoe_image_b64
         
         print("[INFO] Virtual Try-On request - using Vertex AI")
+        print(f"[INFO] Auth mode: {auth_mode}")
         print(f"[INFO] Project ID: {project_id}")
         print(f"[INFO] Person image length: {len(person_image_b64_clean)}")
         print(f"[INFO] Shoe image length: {len(shoe_image_b64_clean)}")
-        
-        # Get access token from credentials
-        from google.auth.transport.requests import Request
-        credentials.refresh(Request())
-        access_token = credentials.token
-        print(f"[DEBUG] Got access token: {access_token[:20]}...")
-        
+
         # QUESTION: Is this the correct endpoint and model name?
         # Based on the documentation you showed, virtual-try-on-001 should be available
-        url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
-        
+        base_url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
+        url = f"{base_url}?key={vertex_api_key}" if auth_mode == 'api-key' else base_url
+
         headers = {
-            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
+        if auth_mode == 'service-account':
+            headers["Authorization"] = f"Bearer {access_token}"
         
         print(f"[DEBUG] API Endpoint: {url}")
         
@@ -179,7 +195,8 @@ def virtualTryOn(request):
                 
                 return JsonResponse({
                     'error': f'Vertex AI Virtual Try-On API Error: {error_text}',
-                    'status_code': response.status_code
+                    'status_code': response.status_code,
+                    'auth_mode': auth_mode
                 }, status=response.status_code)
                 
         except requests.exceptions.RequestException as e:
