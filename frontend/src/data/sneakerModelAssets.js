@@ -32,7 +32,7 @@ export const SNEAKER_MODEL_ASSETS = {
     rotationX: 0,
   },
   'airforce-new': {
-    url: '/models/airforccenew.glb?v=11',
+    url: '/models/airforce-new.glb?v=12',
     scale: 2.0,
     rotationY: Math.PI / 4,
     rotationX: 0,

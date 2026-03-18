@@ -2,31 +2,281 @@
  * TryOnPage Styles
  */
 
-.shoe-preview img,
-.person-preview img,
-.result-preview img {
-  max-height: 400px;
-  object-fit: contain;
-  width: 100%;
+.tryon-shell {
+  min-height: 100vh;
+  color: #eaf1ff;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(146, 183, 236, 0.2) 0%, rgba(146, 183, 236, 0) 34%),
+    radial-gradient(circle at 88% 0%, rgba(229, 225, 219, 0.12) 0%, rgba(229, 225, 219, 0) 32%),
+    linear-gradient(180deg, #0a1a33 0%, #0d2344 56%, #0f294f 100%);
 }
 
+.tryon-header {
+  border-bottom: 1px solid rgba(211, 225, 248, 0.22);
+  padding-bottom: 16px;
+}
+
+.tryon-kicker {
+  color: rgba(222, 234, 255, 0.72);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.tryon-back-btn {
+  border: 1px solid rgba(211, 225, 248, 0.36);
+  border-radius: 999px;
+  background: rgba(15, 38, 71, 0.76);
+  color: #eaf2ff;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.tryon-back-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(230, 240, 255, 0.58);
+  box-shadow: 0 12px 20px rgba(6, 14, 28, 0.35);
+}
+
+.tryon-header-badge {
+  border: 1px solid rgba(229, 225, 219, 0.46);
+  border-radius: 999px;
+  padding: 7px 14px;
+  color: #efe7dc;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(120deg, rgba(229, 225, 219, 0.16), rgba(148, 164, 196, 0.14));
+}
+
+.tryon-intro {
+  max-width: 780px;
+  color: rgba(223, 234, 252, 0.82);
+  line-height: 1.65;
+}
+
+.tryon-panel {
+  border: 1px solid rgba(205, 221, 248, 0.24);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(11, 31, 61, 0.94), rgba(10, 25, 49, 0.92));
+  box-shadow: 0 18px 38px rgba(7, 15, 30, 0.38);
+  overflow: hidden;
+}
+
+.tryon-panel__head {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(203, 220, 246, 0.14);
+}
+
+.tryon-panel__head h5 {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.tryon-panel__head p {
+  font-size: 0.83rem;
+  color: rgba(212, 226, 248, 0.68);
+}
+
+.tryon-panel__body {
+  padding: 18px 20px 20px;
+}
+
+.shoe-preview,
 .person-preview,
-.shoe-preview {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  min-height: 200px;
+.result-preview {
+  border-radius: 16px;
+  border: 1px solid rgba(194, 214, 247, 0.2);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(145, 179, 233, 0.24), rgba(145, 179, 233, 0) 42%),
+    linear-gradient(180deg, #142f57 0%, #112a4d 100%);
+  min-height: 230px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 14px;
+}
+
+.tryon-3d-wrap {
+  width: 100%;
+}
+
+.tryon-3d-wrap .mockup3d-stage {
+  min-height: 360px;
+  height: 420px !important;
+  border-radius: 14px !important;
+}
+
+.tryon-3d-wrap .mockup3d-stage--minimal {
+  box-shadow: none;
 }
 
 .result-preview {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
-.btn:disabled {
+.shoe-preview img,
+.person-preview img,
+.result-preview img {
+  width: 100%;
+  max-height: 390px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.tryon-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.tryon-upload-grid span {
+  border: 1px solid rgba(204, 221, 248, 0.2);
+  background: rgba(19, 45, 81, 0.62);
+  border-radius: 10px;
+  padding: 8px 11px;
+  color: rgba(224, 235, 253, 0.86);
+  font-size: 0.8rem;
+}
+
+.tryon-file-input {
+  border: 1px solid rgba(203, 220, 246, 0.34);
+  border-radius: 12px;
+  background: rgba(13, 35, 66, 0.86);
+  color: #eaf2ff;
+  min-height: 46px;
+}
+
+.tryon-file-input:focus {
+  border-color: rgba(226, 238, 255, 0.68);
+  box-shadow: 0 0 0 0.2rem rgba(158, 188, 234, 0.22);
+}
+
+.tryon-file-input::file-selector-button {
+  border: 0;
+  background: rgba(229, 225, 219, 0.2);
+  color: #f4ece2;
+  padding: 10px 14px;
+  margin-right: 12px;
+}
+
+.tryon-generate-btn,
+.tryon-download-btn {
+  border: 1px solid rgba(229, 225, 219, 0.52);
+  border-radius: 999px;
+  min-height: 44px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.tryon-generate-btn {
+  background: linear-gradient(120deg, #e5e1db 0%, #ced8ea 100%);
+  color: #102947;
+}
+
+.tryon-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: linear-gradient(120deg, #ccdcf8 0%, #b6cdef 100%);
+  color: #0e2846;
+  width: 100%;
+}
+
+.result-preview .mt-3 {
+  width: 100%;
+}
+
+.tryon-generate-btn:hover,
+.tryon-download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(7, 16, 32, 0.4);
+  filter: brightness(1.03);
+}
+
+.tryon-generate-btn:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tryon-note {
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  font-size: 0.86rem;
+}
+
+.tryon-note--warning {
+  color: #f7e8ca;
+  background: rgba(128, 95, 25, 0.24);
+  border-color: rgba(233, 198, 115, 0.35);
+}
+
+.tryon-note--error {
+  color: #ffd5d5;
+  background: rgba(120, 25, 35, 0.28);
+  border-color: rgba(234, 133, 145, 0.38);
+}
+
+.tryon-note--success {
+  color: #d7f5e2;
+  background: rgba(23, 93, 66, 0.33);
+  border-color: rgba(139, 222, 190, 0.32);
+}
+
+.tryon-state,
+.tryon-empty {
+  border-radius: 16px;
+  border: 1px dashed rgba(200, 218, 246, 0.28);
+  background: rgba(20, 44, 78, 0.55);
+  color: rgba(227, 237, 254, 0.82);
+}
+
+.tryon-state .spinner-border {
+  color: #e5e1db;
+}
+
+.tryon-empty span {
+  font-size: 0.83rem;
+  color: rgba(211, 226, 250, 0.66);
+}
+
+.tryon-footer {
+  border-top: 1px solid rgba(203, 220, 246, 0.2);
+  padding-top: 14px;
+  color: rgba(204, 220, 246, 0.72);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 991px) {
+  .tryon-shell {
+    min-height: auto;
+  }
+
+  .tryon-header-badge {
+    width: 100%;
+    text-align: center;
+  }
+
+  .tryon-panel__head,
+  .tryon-panel__body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .tryon-3d-wrap .mockup3d-stage {
+    height: 340px !important;
+  }
 }

@@ -3,7 +3,7 @@
  * Order summary: design details, quantity, size, subtotal, discount, total
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDesign } from '../context/DesignContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useCart } from '../context/CartContext';
@@ -19,7 +19,7 @@ function formatColorSummary(layerColors) {
     .join(' · ');
 }
 
-export function OrderSummary() {
+export function OrderSummary({ captureFunction }) {
   const { design } = useDesign();
   const { tier } = useSubscription();
   const { addItem } = useCart();
@@ -27,6 +27,7 @@ export function OrderSummary() {
   const [size, setSize] = useState('US 9');
   const [showToast, setShowToast] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const [previewImage, setPreviewImage] = useState(() => localStorage.getItem('shoe_image'));
 
   const discountPercent = tier === 'premium' ? DISCOUNT_PERCENT_PREMIUM : 0;
   const subtotal = quantity * UNIT_PRICE;
@@ -35,7 +36,28 @@ export function OrderSummary() {
 
   const customizationSummary = formatColorSummary(design.layerColors);
 
+  useEffect(() => {
+    if (!captureFunction) return;
+
+    const timer = window.setTimeout(() => {
+      const img = captureFunction();
+      if (img) {
+        setPreviewImage(img);
+        localStorage.setItem('shoe_image', img);
+      }
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [captureFunction, design]);
+
   const handleAddToCart = () => {
+    const currentPreview = captureFunction ? captureFunction() : previewImage;
+
+    if (currentPreview) {
+      setPreviewImage(currentPreview);
+      localStorage.setItem('shoe_image', currentPreview);
+    }
+
     addItem({
       modelId: design.modelId,
       modelName: design.modelName,
@@ -46,6 +68,7 @@ export function OrderSummary() {
       size,
       quantity,
       unitPrice: total / quantity,
+      previewImage: currentPreview || null,
     });
 
     setIsAdded(true);
@@ -63,7 +86,11 @@ export function OrderSummary() {
       <div className="card-body order-module">
         <h2 className="h5 mb-3">Custom Product</h2>
         <div className="order-module__preview" aria-hidden="true">
-          <div className="order-module__preview-shoe">👟</div>
+          {previewImage ? (
+            <img src={previewImage} alt="Current custom design preview" className="order-module__preview-image" />
+          ) : (
+            <div className="order-module__preview-shoe">👟</div>
+          )}
         </div>
 
         <h3 className="order-module__name">{design.modelName}</h3>

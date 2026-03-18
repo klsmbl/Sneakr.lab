@@ -3,7 +3,9 @@
  * Design state: sneaker model, layer colors, design, logo
  */
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+
+const DESIGN_STORAGE_KEY = 'sneakr_current_design';
 
 const DEFAULT_LAYER_COLORS = {
   upper: '#FFFFFF',
@@ -48,15 +50,40 @@ export function DesignProvider({ children }) {
   const [design, setDesignState] = useState(() => {
     const storedModelId = localStorage.getItem('sneakr_selected_model');
     const storedModelName = localStorage.getItem('sneakr_selected_model_name');
+
+    let savedDesign = null;
+    try {
+      const raw = localStorage.getItem(DESIGN_STORAGE_KEY);
+      savedDesign = raw ? JSON.parse(raw) : null;
+    } catch {
+      savedDesign = null;
+    }
+
+    const preferredModelId = savedDesign?.modelId || storedModelId || DEFAULT_DESIGN.modelId;
+    const preferredModelName = savedDesign?.modelName || storedModelName || DEFAULT_DESIGN.modelName;
+
     return {
       ...DEFAULT_DESIGN,
-      modelId: storedModelId || DEFAULT_DESIGN.modelId,
-      modelName: storedModelName || DEFAULT_DESIGN.modelName,
+      ...(savedDesign || {}),
+      modelId: preferredModelId,
+      modelName: preferredModelName,
+      layerColors: {
+        ...DEFAULT_LAYER_COLORS,
+        ...(savedDesign?.layerColors || {}),
+      },
     };
   });
 
+  useEffect(() => {
+    localStorage.setItem(DESIGN_STORAGE_KEY, JSON.stringify(design));
+    localStorage.setItem('sneakr_selected_model', design.modelId);
+    localStorage.setItem('sneakr_selected_model_name', design.modelName);
+  }, [design]);
+
   const setModel = useCallback((modelId, modelName) => {
     setDesignState((d) => ({ ...d, modelId, modelName }));
+    localStorage.setItem('sneakr_selected_model', modelId);
+    localStorage.setItem('sneakr_selected_model_name', modelName);
   }, []);
 
   const setAccentColor = useCallback((accentColor) => {
@@ -80,6 +107,7 @@ export function DesignProvider({ children }) {
 
   const resetDesign = useCallback(() => {
     setDesignState(DEFAULT_DESIGN);
+    localStorage.removeItem(DESIGN_STORAGE_KEY);
   }, []);
 
   const value = {

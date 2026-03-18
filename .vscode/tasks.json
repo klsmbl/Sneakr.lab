@@ -4,8 +4,32 @@
 		{
 			"label": "npm start frontend",
 			"type": "shell",
-			"command": "cd frontend && npm install && npm start",
+			"command": "Set-Location frontend; npm install; npm start",
 			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "npm start node-api",
+			"type": "shell",
+			"command": "Set-Location server; npm install; npm start",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "python start django-tryon",
+			"type": "shell",
+			"command": "$env:GOOGLE_APPLICATION_CREDENTIALS=\"../service-account.json\"; Set-Location backend; python manage.py runserver",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "start all services",
+			"dependsOn": [
+				"npm start frontend",
+				"npm start node-api",
+				"python start django-tryon"
+			],
+			"dependsOrder": "parallel",
 			"problemMatcher": []
 		}
 	]

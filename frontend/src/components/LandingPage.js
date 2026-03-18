@@ -14,6 +14,7 @@ const HOW_TO_STEPS = [
   {
     num: '01',
     title: 'Step 1: Choose Your Shoe Style',
+    image: '/placeholder-ui.svg',
     bullets: [
       'Browse multiple customizable shoe models',
       'Select the base shoe you want to design',
@@ -23,15 +24,17 @@ const HOW_TO_STEPS = [
   {
     num: '02',
     title: 'Step 2: Design Your Custom Shoes',
+    image: '/STEP 2.png',
     bullets: [
-      'Change colors and materials',
-      'Add logos, text, or graphics',
-      'Adjust and position design elements easily',
+      'Choose a style like Plain, Stripes, Camo, Gradient, or Vintage',
+      'Customize each part color (upper, midsole, outsole, accents, and more)',
+      'Preview your design in interactive 3D and use Virtual Try-On',
     ],
   },
   {
     num: '03',
     title: 'Step 3: Order Your Shoes',
+    image: '/STEP 3.png',
     bullets: [
       'Review your custom design',
       'Select your size and quantity',
@@ -52,11 +55,13 @@ function HowToSection({ onGetStarted }) {
         <div className="howto__grid">
           {HOW_TO_STEPS.map((step) => (
             <div key={step.num} className="howto__card">
-              <div className="howto__card-mockup">
+              <div
+                className={`howto__card-mockup ${step.num === '02' ? 'howto__card-mockup--step2' : ''}`}
+              >
                 <img
-                  src="/placeholder-ui.svg"
-                  alt="UI mockup"
-                  className="howto__card-mockup-img"
+                  src={step.image}
+                  alt={`${step.title} preview`}
+                  className={`howto__card-mockup-img ${step.num === '02' ? 'howto__card-mockup-img--step2' : ''}`}
                 />
               </div>
               <div className="howto__card-top">
@@ -85,7 +90,7 @@ function HowToSection({ onGetStarted }) {
 export function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useUser();
+  const { user } = useUser();
   const { tier } = useSubscription();
   const { itemCount, openCart } = useCart();
 
@@ -103,9 +108,7 @@ export function LandingPage() {
 
   const handleProfileClick = () => {
     if (user) {
-      if (window.confirm('Do you want to sign out?')) {
-        signOut();
-      }
+      navigate('/account');
     } else {
       navigate('/signin');
     }
@@ -131,20 +134,30 @@ export function LandingPage() {
           <nav className="header__nav">
             <button className="nav-link" onClick={handleGetStarted}>Design a Custom Shoe</button>
             <button className="nav-link" onClick={() => document.getElementById('business-form')?.scrollIntoView({ behavior: 'smooth' })}>Branded Business Shoes</button>
-            {user && tier === 'free' && (
-              <button className="nav-link premium-btn" onClick={handleUpgradeClick}>⭐ Upgrade to Premium</button>
-            )}
           </nav>
 
           <div className="header__icons">
-            {user && <span className="user-email">{user.email} ({tier === 'premium' ? '⭐ Premium' : 'Free'})</span>}
             <button className="icon-button icon-button--cart" type="button" aria-label="Cart" onClick={openCart}>
               <img src="/online-shopping.png" alt="Cart" className="icon-img" />
               {itemCount > 0 && <span className="icon-button__badge">{itemCount}</span>}
             </button>
             <button className="icon-button" type="button" aria-label="Profile" onClick={handleProfileClick}>
-              <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'Sign Out' : 'Sign In'} />
+              <img src="/user.png" alt="Profile" className="icon-img" title={user ? 'My Account' : 'Sign In'} />
             </button>
+            {user && (
+              <button
+                className={`header-upgrade-btn${tier === 'premium' ? ' is-premium' : ''}`}
+                type="button"
+                onClick={handleUpgradeClick}
+              >
+                {tier === 'premium' ? 'Premium' : 'Upgrade'}
+              </button>
+            )}
+            {!user && (
+              <button className="header-auth-btn" type="button" onClick={() => navigate('/signin')}>
+                Sign In / Create Account
+              </button>
+            )}
           </div>
         </div>
       </header>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ContactUs.css';
 import Footer from '../Footer';
 
 function ContactUs() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,6 +32,19 @@ function ContactUs() {
     <div className="contact-page">
       <section className="contact-hero">
         <div className="contact-hero__content">
+          <button
+            type="button"
+            className="contact-back-btn"
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/');
+              }
+            }}
+          >
+            ← Back
+          </button>
           <p className="contact-hero__eyebrow">SUPPORT</p>
           <h1 className="contact-hero__title">Contact Us</h1>
           <h2 className="contact-hero__subtitle">Need Help? We're Here for You</h2>

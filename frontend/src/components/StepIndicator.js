@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import './StepIndicator.css';
 
 const STEPS = [
@@ -10,8 +11,8 @@ export function StepIndicator({ currentStep }) {
   return (
     <div className="step-indicator">
       {STEPS.map((step, idx) => (
-        <>
-          <div key={step.num} className="step-indicator__step">
+        <Fragment key={step.num}>
+          <div className="step-indicator__step">
             <div
               className={[
                 'step-indicator__circle',
@@ -21,7 +22,7 @@ export function StepIndicator({ currentStep }) {
                 .filter(Boolean)
                 .join(' ')}
             >
-              {currentStep > step.num ? '✓' : step.num}
+              {step.num}
             </div>
             <span
               className={[
@@ -45,7 +46,7 @@ export function StepIndicator({ currentStep }) {
                 .join(' ')}
             />
           )}
-        </>
+        </Fragment>
       ))}
     </div>
   );

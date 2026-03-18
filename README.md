@@ -27,19 +27,20 @@
   - Unlimited saved designs
   - HD export
   - No watermark
-  - Access to premium models (coming soon)
+  - Access to premium models
+  - PayPal-based upgrade flow (sandbox-ready)
 
-### 💾 Database Integration (Optional)
-- Save and load designs from PostgreSQL
-- View design history
-- Share designs via unique IDs
+### 💾 Data & API Integration
+- Save and load designs from Node API (SQLite)
+- User authentication and subscription tracking
+- Django API for AI virtual try-on endpoint
 
 
 ## Tech Stack
 
 - **Frontend**: React 19, React Router DOM 7, Bootstrap 5
 - **3D Rendering**: Three.js 0.182, React Three Fiber 9.5, React Three Drei 10.7
-- **Backend**: Express.js, PostgreSQL (optional)
+- **Backend**: Express.js (auth, designs, subscription, PayPal) + Django (AI try-on)
 - **State Management**: React Context API
 - **Styling**: Bootstrap 5, Custom CSS
 
@@ -47,7 +48,7 @@
 
 ### Prerequisites
 - Node.js 16+ and npm
-- PostgreSQL (optional - only needed for saving designs)
+- Python 3.10+ and pip (for Django backend)
 
 ### Installation
 
@@ -57,25 +58,35 @@ cd Sneakr.lab/frontend
 npm install
 ```
 
-2. **Install Backend Dependencies** (Optional - for saving designs)
+2. **Install Node Backend Dependencies**
 ```bash
 cd ../server
 npm install
 ```
 
-3. **Set Up Database** (Optional - for save/load feature)
+3. **Install Django Backend Dependencies**
 ```bash
-# Create a PostgreSQL database
-createdb sneakrlab
-
-# Set up environment variables
-cd server
-cp .env.example .env
-# Edit .env and add your DATABASE_URL
-
-# Run schema
-psql $DATABASE_URL -f schema.sql
+cd ../backend
+pip install -r requirements.txt
 ```
+
+If `requirements.txt` is not available, install minimum packages:
+```bash
+pip install django django-cors-headers djangorestframework pillow requests google-cloud-aiplatform google-auth
+```
+
+4. **Create Environment Files**
+```bash
+# Server env
+cd ../server
+copy .env.example .env
+
+# Frontend env
+cd ../frontend
+copy .env.example .env
+```
+
+Then edit both `.env` files with your local values.
 
 ### Running the App
 
@@ -86,12 +97,19 @@ npm start
 ```
 App opens at [http://localhost:3000](http://localhost:3000)
 
-2. **Start Backend** (Optional - in another terminal)
+2. **Start Node Backend** (required for auth, designs, subscription)
 ```bash
 cd server
 npm start
 ```
 API runs at [http://localhost:3001](http://localhost:3001)
+
+3. **Start Django Backend** (required for `/api/tryon/`)
+```bash
+cd backend
+python manage.py runserver 8000
+```
+Django API runs at [http://localhost:8000](http://localhost:8000)
 
 ## Routes
 
@@ -165,16 +183,37 @@ In the `frontend/` directory:
 
 ### Environment Variables
 
-Frontend (optional - create `.env` in frontend/):
+Frontend (`frontend/.env`):
 ```bash
+# Node API (auth/design/subscription)
+REACT_APP_NODE_API_URL=http://localhost:3001
+# Backward compatibility alias
 REACT_APP_API_URL=http://localhost:3001
+
+# Django API (try-on)
+REACT_APP_DJANGO_API_URL=http://localhost:8000
+
+# PayPal JS SDK
+REACT_APP_PAYPAL_CLIENT_ID=your_paypal_client_id_here
 ```
 
-Backend (create `.env` in server/):
+Node Backend (`server/.env`):
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/sneakrlab
 PORT=3001
+FRONTEND_URL=http://localhost:3000
+JWT_SECRET=change-me
+
+# PayPal Sandbox credentials
+PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
 ```
+
+### PayPal Sandbox Test Accounts
+
+Use these for sandbox checkout testing (no real money):
+
+- **Buyer**: `sb-mock@paypal.com` / `123456`
+- **Seller**: `sb-seller@paypal.com` / `123456`
 
 ## Features in Detail
 
@@ -190,6 +229,7 @@ Colors are applied using Three.js vertex attributes based on Y-position of mesh 
 - Free users see a watermark on the 3D preview
 - Premium users get unlimited colors, no watermark, and HD export
 - Tier status managed via React Context (`SubscriptionContext.js`)
+- Upgrade checkout uses PayPal sandbox order create/capture endpoints
 
 ## Deployment
 
@@ -200,12 +240,12 @@ npm run build
 # Deploy the build/ folder to Vercel, Netlify, or any static host
 ```
 
-### Backend (Optional)
+### Backend
 ```bash
 cd server
-# Set DATABASE_URL environment variable on your hosting platform
+# Set PAYPAL and JWT env variables on your hosting platform
 npm start
-# Deploy to Railway, Render, Heroku, or any Node.js hosting
+# Deploy Node API to Railway/Render/Heroku and Django API to a Python host
 ```
 
 ## Key Technologies

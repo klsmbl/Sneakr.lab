@@ -15,10 +15,23 @@ export const UserProvider = ({ children }) => {
     setLoading(false);
   }, [token]);
 
+  const normalizeUser = (rawUser) => {
+    if (!rawUser) return rawUser;
+
+    const name = rawUser.name || rawUser.full_name || rawUser.fullName || '';
+    return {
+      ...rawUser,
+      name,
+      full_name: rawUser.full_name || name,
+      fullName: rawUser.fullName || name,
+    };
+  };
+
   const signIn = (userData, userToken) => {
-    setUser(userData);
+    const normalizedUser = normalizeUser(userData);
+    setUser(normalizedUser);
     setToken(userToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
     localStorage.setItem('token', userToken);
   };
 
@@ -29,10 +42,18 @@ export const UserProvider = ({ children }) => {
     localStorage.removeItem('token');
   };
 
+  const updateProfile = (updates) => {
+    setUser((prevUser) => {
+      const nextUser = normalizeUser({ ...(prevUser || {}), ...updates });
+      localStorage.setItem('user', JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   const isAdmin = user?.role === 'admin';
 
   return (
-    <UserContext.Provider value={{ user, token, loading, signIn, signOut, isAdmin }}>
+    <UserContext.Provider value={{ user, token, loading, signIn, signOut, updateProfile, isAdmin }}>
       {children}
     </UserContext.Provider>
   );

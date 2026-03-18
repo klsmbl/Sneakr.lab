@@ -2,20 +2,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.models import User
-from .models import FAQ, UserProfile
+from .models import FAQ
 import json
 import base64
 import os
 import requests
 from pathlib import Path
-from dotenv import load_dotenv
-import jwt
-from datetime import datetime, timedelta
-
-# Load environment variables from .env file (in project root, parent of backend)
-env_path = Path(__file__).resolve().parent.parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
 
 try:
     from google.auth import default
@@ -27,140 +19,6 @@ except ImportError:
 
 def getRoutes(request):
     return JsonResponse({'message': 'Welcome to Sneakr API'})
-
-JWT_SECRET = os.getenv('JWT_SECRET', 'django-secret-key-dev')
-
-def get_jwt_token(user_id):
-    """Generate JWT token for user"""
-    payload = {
-        'id': user_id,
-        'iat': datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(hours=24)
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm='HS256')
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def signIn(request):
-    """Sign in user and return JWT token"""
-    try:
-        data = json.loads(request.body)
-        email = data.get('email', '').strip()
-        password = data.get('password', '')
-        
-        if not email or not password:
-            return JsonResponse({'error': 'Email and password are required'}, status=400)
-        
-        # Try to find user by email
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'Invalid email or password'}, status=401)
-        
-        # Check password
-        if not user.check_password(password):
-            return JsonResponse({'error': 'Invalid email or password'}, status=401)
-        
-        # Get subscription tier
-        try:
-            profile = user.userprofile
-            subscription = profile.subscription
-            subscription_date = profile.subscription_date.isoformat() if profile.subscription_date else None
-        except:
-            subscription = 'free'
-            subscription_date = None
-        
-        # Generate token
-        token = get_jwt_token(user.id)
-        
-        return JsonResponse({
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'subscription': subscription,
-                'subscription_date': subscription_date
-            },
-            'token': token
-        })
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def signUp(request):
-    """Sign up new user"""
-    try:
-        data = json.loads(request.body)
-        email = data.get('email', '').strip()
-        password = data.get('password', '')
-        
-        if not email or not password:
-            return JsonResponse({'error': 'Email and password are required'}, status=400)
-        
-        # Check if user already exists
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'User already exists'}, status=400)
-        
-        # Create user
-        user = User.objects.create_user(username=email, email=email, password=password)
-        
-        # Create user profile with free subscription
-        UserProfile.objects.create(user=user, subscription='free')
-        
-        # Generate token
-        token = get_jwt_token(user.id)
-        
-        return JsonResponse({
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'subscription': 'free',
-                'subscription_date': None
-            },
-            'token': token
-        }, status=201)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-def authenticate_token(request):
-    """Authenticate JWT token from Authorization header"""
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header.startswith('Bearer '):
-        return None, JsonResponse({'error': 'Authentication required'}, status=401)
-    
-    token = auth_header.split(' ')[1]
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        return payload['id'], None
-    except jwt.ExpiredSignatureError:
-        return None, JsonResponse({'error': 'Token expired'}, status=401)
-    except jwt.InvalidTokenError:
-        return None, JsonResponse({'error': 'Invalid token'}, status=401)
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def getSubscription(request):
-    """Get user subscription status"""
-    user_id, error = authenticate_token(request)
-    if error:
-        return error
-    
-    try:
-        user = User.objects.get(id=user_id)
-        profile = user.userprofile
-        
-        return JsonResponse({
-            'tier': profile.subscription,
-            'subscription_date': profile.subscription_date.isoformat() if profile.subscription_date else None
-        })
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
 
 def getFAQs(request):
     faqs = FAQ.objects.all()
@@ -176,7 +34,7 @@ def getFAQs(request):
     return JsonResponse({'faqs': faq_list})
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST", "OPTIONS"])
 def virtualTryOn(request):
     """
     Virtual Try-On endpoint using Google Vertex AI
@@ -188,6 +46,9 @@ def virtualTryOn(request):
         }, status=500)
     
     try:
+        if request.method == "OPTIONS":
+            return JsonResponse({"ok": True}, status=200)
+
         # Parse request body
         data = json.loads(request.body)
         person_image_b64 = data.get('person_image')
@@ -198,59 +59,75 @@ def virtualTryOn(request):
                 'error': 'Both person_image and shoe_image are required'
             }, status=400)
         
-        # Initialize Vertex AI with credentials from environment
-        service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT')
-        
-        if not service_account_json:
-            return JsonResponse({
-                'error': 'GOOGLE_SERVICE_ACCOUNT not found in .env file. Please add your Google Cloud service account credentials.'
-            }, status=500)
-        
-        try:
-            # Parse the JSON string from environment variable
-            service_account_info = json.loads(service_account_json)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'error': 'Invalid JSON in GOOGLE_SERVICE_ACCOUNT. Please ensure the service account JSON is properly formatted and escaped.'
-            }, status=500)
-        
-        # Set credentials
-        credentials = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=['https://www.googleapis.com/auth/cloud-platform']
-        )
-        
-        # Read project ID from service account info
-        project_id = service_account_info.get('project_id')
-        
-        if not project_id:
-            return JsonResponse({
-                'error': 'Project ID not found in GOOGLE_SERVICE_ACCOUNT'
-            }, status=500)
+        # Initialize Vertex AI credentials.
+        # Supports either:
+        # 1) API key mode: VERTEX_API_KEY (or GOOGLE_API_KEY) + VERTEX_PROJECT_ID
+        # 2) Service account mode: GOOGLE_APPLICATION_CREDENTIALS or ./service-account.json
+        BASE_DIR = Path(__file__).resolve().parent.parent.parent
+        vertex_api_key = os.getenv('VERTEX_API_KEY', '').strip() or os.getenv('GOOGLE_API_KEY', '').strip()
+        env_project_id = os.getenv('VERTEX_PROJECT_ID', '').strip()
+
+        auth_mode = 'service-account'
+        access_token = None
+        project_id = env_project_id
+
+        if vertex_api_key:
+            auth_mode = 'api-key'
+            if not project_id:
+                return JsonResponse({
+                    'error': 'VERTEX_PROJECT_ID is required when using VERTEX_API_KEY/GOOGLE_API_KEY'
+                }, status=500)
+        else:
+            env_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
+            default_credentials_path = os.path.join(BASE_DIR, 'service-account.json')
+            service_account_path = env_credentials_path or default_credentials_path
+
+            if not os.path.exists(service_account_path):
+                return JsonResponse({
+                    'error': (
+                        'Vertex credentials not found. Provide VERTEX_API_KEY + VERTEX_PROJECT_ID '
+                        'or set GOOGLE_APPLICATION_CREDENTIALS/place service-account.json in the project root.'
+                    )
+                }, status=500)
+
+            credentials = service_account.Credentials.from_service_account_file(
+                service_account_path,
+                scopes=['https://www.googleapis.com/auth/cloud-platform']
+            )
+
+            with open(service_account_path, 'r') as f:
+                service_account_info = json.load(f)
+                project_id = project_id or service_account_info.get('project_id')
+
+            if not project_id:
+                return JsonResponse({
+                    'error': 'Project ID not found. Set VERTEX_PROJECT_ID or include it in service-account.json'
+                }, status=500)
+
+            from google.auth.transport.requests import Request
+            credentials.refresh(Request())
+            access_token = credentials.token
         
         # Clean base64 data (remove data URL prefix if present)
         person_image_b64_clean = person_image_b64.split(',')[-1] if ',' in person_image_b64 else person_image_b64
         shoe_image_b64_clean = shoe_image_b64.split(',')[-1] if ',' in shoe_image_b64 else shoe_image_b64
         
         print("[INFO] Virtual Try-On request - using Vertex AI")
+        print(f"[INFO] Auth mode: {auth_mode}")
         print(f"[INFO] Project ID: {project_id}")
         print(f"[INFO] Person image length: {len(person_image_b64_clean)}")
         print(f"[INFO] Shoe image length: {len(shoe_image_b64_clean)}")
-        
-        # Get access token from credentials
-        from google.auth.transport.requests import Request
-        credentials.refresh(Request())
-        access_token = credentials.token
-        print(f"[DEBUG] Got access token: {access_token[:20]}...")
-        
+
         # QUESTION: Is this the correct endpoint and model name?
         # Based on the documentation you showed, virtual-try-on-001 should be available
-        url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
-        
+        base_url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
+        url = f"{base_url}?key={vertex_api_key}" if auth_mode == 'api-key' else base_url
+
         headers = {
-            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
+        if auth_mode == 'service-account':
+            headers["Authorization"] = f"Bearer {access_token}"
         
         print(f"[DEBUG] API Endpoint: {url}")
         
@@ -321,7 +198,8 @@ def virtualTryOn(request):
                 
                 return JsonResponse({
                     'error': f'Vertex AI Virtual Try-On API Error: {error_text}',
-                    'status_code': response.status_code
+                    'status_code': response.status_code,
+                    'auth_mode': auth_mode
                 }, status=response.status_code)
                 
         except requests.exceptions.RequestException as e:

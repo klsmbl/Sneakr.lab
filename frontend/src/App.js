@@ -15,6 +15,7 @@ import { SubscriptionPage } from './components/SubscriptionPage';
 import { UserProvider } from './context/UserContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { CartProvider } from './context/CartContext';
+import { DesignProvider } from './context/DesignContext';
 import RefundPolicy from './pages/RefundPolicy';
 import TermsAndServices from './pages/TermsAndServices';
 import WhoAreWe from './pages/WhoAreWe';
@@ -22,6 +23,10 @@ import Blog from './pages/Blog';
 import BlogArticle from './pages/BlogArticle';
 import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AccountPage from './pages/AccountPage';
+import EditProfilePage from './pages/EditProfilePage';
+import CheckoutPage from './pages/CheckoutPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import { TryOnPage } from './components/TryOnPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -74,6 +79,10 @@ function AppRoutes() {
         <Route path="/blog/how-to-measure-shoe-size" element={<BlogArticle />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/edit-profile" element={<EditProfilePage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
         <Route path="/tryon" element={<TryOnPage />} />
       </Routes>
     </>
@@ -84,11 +93,13 @@ function App() {
   return (
     <UserProvider>
       <SubscriptionProvider>
-        <CartProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </CartProvider>
+        <DesignProvider>
+          <CartProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </CartProvider>
+        </DesignProvider>
       </SubscriptionProvider>
     </UserProvider>
   );
