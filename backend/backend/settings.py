@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -25,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-25qyj*ls29990%y^=!m2$^e(9%=x56-_$0d%&f)v79hrfidkv&'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-only-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 # Configure ALLOWED_HOSTS - accept requests from environment or default to localhost
 ALLOWED_HOSTS_ENV = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,localhost:8000,127.0.0.1:8000')
@@ -84,19 +85,45 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', 'Sneakr.lab'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'admin123'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'client_encoding': 'UTF8',
-        },
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
+
+if DATABASE_URL:
+    parsed = urlparse(DATABASE_URL)
+    query = parse_qs(parsed.query)
+    sslmode = os.getenv('DB_SSLMODE', query.get('sslmode', ['require'])[0])
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.path.lstrip('/'),
+            'USER': parsed.username,
+            'PASSWORD': parsed.password,
+            'HOST': parsed.hostname,
+            'PORT': str(parsed.port or 5432),
+            'OPTIONS': {
+                'client_encoding': 'UTF8',
+                'sslmode': sslmode,
+            },
+        }
     }
-}
+else:
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_sslmode = os.getenv('DB_SSLMODE', 'require' if db_host not in ['localhost', '127.0.0.1'] else 'disable')
+
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': db_host,
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'OPTIONS': {
+                'client_encoding': 'UTF8',
+                'sslmode': db_sslmode,
+            },
+        }
+    }
 
 
 
