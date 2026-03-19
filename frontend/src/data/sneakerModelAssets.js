@@ -20,7 +20,7 @@ export const SNEAKER_MODEL_ASSETS = {
     rotationX: 0,
   },
   'airforce': {
-    url: '/models/AIRFORCE.glb?v=3',
+    url: '/models/airforccenew.glb?v=3',
     scale: 2.0,
     rotationY: Math.PI / 4,
     rotationX: 0,
