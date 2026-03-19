@@ -15,6 +15,30 @@ import os
 from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv
 
+
+def _split_env_list(value):
+    return [item.strip() for item in value.split(',') if item and item.strip()]
+
+
+def _normalize_host(host):
+    host = host.strip()
+    if not host:
+        return ''
+    if '://' in host:
+        host = urlparse(host).netloc
+    host = host.split('/')[0]
+    host = host.split(':')[0]
+    return host
+
+
+def _normalize_origin(origin):
+    origin = origin.strip()
+    if not origin:
+        return ''
+    if origin.startswith('http://') or origin.startswith('https://'):
+        return origin.rstrip('/')
+    return f'https://{_normalize_host(origin)}'
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -31,9 +55,17 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-only-change-me')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-# Configure ALLOWED_HOSTS - accept requests from environment or default to localhost
-ALLOWED_HOSTS_ENV = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,localhost:8000,127.0.0.1:8000')
-ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+# Configure ALLOWED_HOSTS for local + Render hostnames
+allowed_hosts_env = _split_env_list(os.getenv('ALLOWED_HOSTS', ''))
+render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS.extend([_normalize_host(host) for host in allowed_hosts_env if _normalize_host(host)])
+if render_hostname:
+    ALLOWED_HOSTS.append(_normalize_host(render_hostname))
+
+# Keep order stable and unique
+ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS))
 
 
 # Application definition
@@ -164,18 +196,33 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
+# Trust Render proxy for HTTPS detection
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CORS / CSRF configuration
+cors_allowed_origins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
 ]
 
-# Allow CORS for all localhost origins in development
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS.extend(os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')) if os.getenv('CORS_ALLOWED_ORIGINS') else None
+frontend_url = os.getenv('FRONTEND_URL', '').strip()
+if frontend_url:
+    normalized_frontend = _normalize_origin(frontend_url)
+    if normalized_frontend:
+        cors_allowed_origins.append(normalized_frontend)
+
+extra_cors = _split_env_list(os.getenv('CORS_ALLOWED_ORIGINS', ''))
+cors_allowed_origins.extend([_normalize_origin(origin) for origin in extra_cors if _normalize_origin(origin)])
+
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(cors_allowed_origins))
+
+csrf_trusted = []
+if frontend_url:
+    normalized_frontend = _normalize_origin(frontend_url)
+    if normalized_frontend:
+        csrf_trusted.append(normalized_frontend)
+csrf_trusted.extend([_normalize_origin(origin) for origin in _split_env_list(os.getenv('CSRF_TRUSTED_ORIGINS', '')) if _normalize_origin(origin)])
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(csrf_trusted))
 
 # REST Framework Configuration
 REST_FRAMEWORK = {
