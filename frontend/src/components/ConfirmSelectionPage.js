@@ -1,6 +1,8 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useDesign } from '../context/DesignContext';
 import { StepIndicator } from './StepIndicator';
 import { AnimatedBackground } from './AnimatedBackground';
+import { Mockup3D } from './Mockup3D';
 import { SNEAKER_MODELS } from '../data/sneakerOptions';
 import './LandingPage.css';
 import './ConfirmSelectionPage.css';
@@ -8,9 +10,15 @@ import './ConfirmSelectionPage.css';
 export function ConfirmSelectionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { design, setModel } = useDesign();
 
   const modelId = searchParams.get('model') || 'classic-1';
   const model = SNEAKER_MODELS.find((m) => m.id === modelId) || SNEAKER_MODELS[0];
+
+  // Update design context with selected model when it changes
+  if (design.modelId !== model.id) {
+    setModel(model.id, model.name);
+  }
 
   const handleProceed = () => {
     localStorage.setItem('sneakr_selected_model', model.id);
@@ -39,13 +47,9 @@ export function ConfirmSelectionPage() {
         <StepIndicator currentStep={2} />
 
         <div className="confirm-page__content">
-          {/* Left: placeholder preview */}
+          {/* Left: 3D model preview */}
           <div className="confirm-page__preview">
-            <div className="confirm-page__placeholder">
-              <span className="confirm-page__placeholder-icon">{model.icon}</span>
-              <span className="confirm-page__placeholder-text">3D Preview</span>
-              <span className="confirm-page__placeholder-sub">coming soon</span>
-            </div>
+            <Mockup3D />
           </div>
 
           {/* Right: info + actions */}
