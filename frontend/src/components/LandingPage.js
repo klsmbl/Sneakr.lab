@@ -34,7 +34,7 @@ const HOW_TO_STEPS = [
   {
     num: '03',
     title: 'Step 3: Order Your Shoes',
-    image: '/placeholder-ui.svg',
+    image: '/STEP 3.png',
     bullets: [
       'Review your custom design',
       'Select your size and quantity',

@@ -3,18 +3,40 @@
 Test if Vertex AI API is enabled in the Google Cloud project
 """
 import os
+import json
 from google.cloud import aiplatform
 from google.oauth2 import service_account
-import os
+from dotenv import load_dotenv
 
-# Set up credentials
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'service-account.json')
-credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
+# Load environment variables from .env file
+load_dotenv()
 
-# Project details
-PROJECT_ID = 'sneakr-lab-488702'
+# Set up credentials from environment variable
+service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT')
+
+if not service_account_json:
+    print("❌ GOOGLE_SERVICE_ACCOUNT not found in .env file")
+    print("Please add your service account JSON to the .env file")
+    exit(1)
+
+try:
+    service_account_info = json.loads(service_account_json)
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=['https://www.googleapis.com/auth/cloud-platform']
+    )
+except json.JSONDecodeError as e:
+    print(f"❌ Invalid JSON in GOOGLE_SERVICE_ACCOUNT: {e}")
+    print("Please ensure the service account JSON is properly formatted")
+    exit(1)
+
+# Project details from service account
+PROJECT_ID = service_account_info.get('project_id')
 LOCATION = 'us-central1'
+
+if not PROJECT_ID:
+    print("❌ project_id not found in service account credentials")
+    exit(1)
 
 try:
     # Initialize Vertex AI

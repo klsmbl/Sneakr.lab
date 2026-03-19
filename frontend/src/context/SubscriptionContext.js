@@ -33,8 +33,14 @@ export function SubscriptionProvider({ children }) {
   const loadSubscription = async () => {
     try {
       setLoading(true);
-      const subData = await getSubscription();
-      setTier(subData.tier);
+      // First try to use subscription from user object (comes from sign in)
+      if (user?.subscription) {
+        setTier(user.subscription);
+      } else {
+        // Fallback to API call if not in user object
+        const subData = await getSubscription();
+        setTier(subData.tier);
+      }
     } catch (err) {
       console.error('Failed to load subscription:', err);
       setTier('free');

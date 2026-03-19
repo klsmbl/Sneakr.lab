@@ -13,14 +13,32 @@ export const SNEAKER_MODEL_ASSETS = {
     scale: 2.2,
     rotationY: Math.PI / 4,
   },
+  'nike-alphafly': {
+    url: '/models/Nike Air Zoom.glb',
+    scale: 2.0,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
+  },
   'airforce': {
     url: '/models/AIRFORCE.glb?v=3',
     scale: 2.0,
     rotationY: Math.PI / 4,
     rotationX: 0,
   },
+  'adidas-samba': {
+    url: '/models/airforccenew.glb?v=11',
+    scale: 2.0,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
+  },
   'airforce-new': {
     url: '/models/airforce-new.glb?v=12',
+    scale: 2.0,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
+  },
+  'jordan1': {
+    url: '/models/jordans 1s.glb',
     scale: 2.0,
     rotationY: Math.PI / 4,
     rotationX: 0,
@@ -84,6 +102,12 @@ export const SNEAKER_MODEL_ASSETS = {
     scale: 2.0,
     rotationY: -Math.PI / 4,
     rotationX: 0.1,
+  },
+  'converse-chuck': {
+    url: '/models/converse.glb',
+    scale: 1.9,
+    rotationY: Math.PI / 4,
+    rotationX: 0,
   },
 };
 

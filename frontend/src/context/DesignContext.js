@@ -14,11 +14,23 @@ const DEFAULT_LAYER_COLORS = {
   midsoleRim: '#FFFFFF',
   laces: '#FFFFFF',
   toe: '#FFFFFF',
-  heel: '#FFFFFF',
+  logo: '#FFFFFF',
   tongue: '#FFFFFF',
   swoosh: '#FFFFFF',
   accent: '#FFFFFF',
   stitching: '#FFFFFF',
+  // Converse color zones
+  LEATHER_MAIN: '#FFFFFF',
+  EYELETS: '#FFFFFF',
+  HEELCAP: '#FFFFFF',
+  INSOLE: '#FFFFFF',
+  LACES: '#FFFFFF',
+  'MIDSOLE.001': '#FFFFFF',
+  OUTERSOLE: '#FFFFFF',
+  STITCHES: '#FFFFFF',
+  TAGS: '#FFFFFF',
+  TOETIP: '#FFFFFF',
+  TONGUE: '#FFFFFF',
 };
 
 const DEFAULT_DESIGN = {
