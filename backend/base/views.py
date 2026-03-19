@@ -215,3 +215,399 @@ def virtualTryOn(request):
         return JsonResponse({
             'error': f'Virtual Try-On failed: {str(e)}'
         }, status=500)
+
+
+# ==================== REST API Endpoints ====================
+
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth.models import User
+from .models import UserProfile, Design, Payment, Order
+from .serializers import (
+    UserSerializer, DesignSerializer, PaymentSerializer, OrderSerializer,
+    SignUpSerializer, SignInSerializer, SubscriptionStatusSerializer
+)
+from .auth_utils import get_tokens_for_user
+import requests
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sign_up(request):
+    """User signup endpoint"""
+    serializer = SignUpSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        tokens = get_tokens_for_user(user)
+        return Response(tokens, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sign_in(request):
+    """User signin endpoint"""
+    serializer = SignInSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                tokens = get_tokens_for_user(user)
+                return Response(tokens, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """Get current user profile"""
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def design_list(request):
+    """List and create designs"""
+    if request.method == 'POST':
+        design_data = request.data
+        design = Design.objects.create(
+            user=request.user,
+            design=design_data
+        )
+        serializer = DesignSerializer(design)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # GET
+    designs = Design.objects.filter(user=request.user)
+    if request.user.profile.role == 'admin':
+        designs = Design.objects.all()
+    
+    serializer = DesignSerializer(designs, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def design_detail(request, design_id):
+    """Get or delete specific design"""
+    try:
+        if request.user.profile.role == 'admin':
+            design = Design.objects.get(id=design_id)
+        else:
+            design = Design.objects.get(id=design_id, user=request.user)
+    except Design.DoesNotExist:
+        return Response({'error': 'Design not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = DesignSerializer(design)
+        return Response(serializer.data)
+    
+    # DELETE
+    design.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def subscription_status(request):
+    """Get current subscription status"""
+    profile = request.user.profile
+    data = {
+        'tier': profile.subscription,
+        'subscription_date': profile.subscription_date,
+        'can_upgrade': profile.subscription == 'free'
+    }
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_subscription_order(request):
+    """Create PayPal subscription order"""
+    from .paypal_utils import create_subscription_order_payload, get_paypal_access_token
+    
+    plan = request.data.get('plan')
+    if plan not in ['monthly', 'yearly']:
+        return Response({'error': 'Invalid plan'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Get PayPal access token (sync call for now)
+        import base64
+        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
+        
+        if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
+            return Response({'error': 'PayPal not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        auth = f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}"
+        auth_b64 = base64.b64encode(auth.encode()).decode()
+        
+        # Get access token
+        token_response = requests.post(
+            f"{PAYPAL_API_BASE}/v1/oauth2/token",
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={'grant_type': 'client_credentials'}
+        )
+        
+        if token_response.status_code != 200:
+            return Response({'error': 'Failed to authenticate with PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        access_token = token_response.json()['access_token']
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+        
+        # Create order
+        payload = create_subscription_order_payload(plan, frontend_url)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        order_response = requests.post(
+            f"{PAYPAL_API_BASE}/v2/checkout/orders",
+            json=payload,
+            headers=headers
+        )
+        
+        if order_response.status_code != 201:
+            return Response({'error': 'Failed to create PayPal order'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        order_data = order_response.json()
+        order_id = order_data['id']
+        
+        # Store in database
+        amount = '9.99' if plan == 'monthly' else '99.99'
+        Payment.objects.create(
+            user=request.user,
+            paypal_order_id=order_id,
+            amount=amount,
+            status='CREATED',
+            subscription_months=1 if plan == 'monthly' else 12
+        )
+        
+        return Response({
+            'id': order_id,
+            'status': order_data['status']
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def capture_subscription_order(request):
+    """Capture PayPal subscription order"""
+    order_id = request.data.get('orderId')
+    if not order_id:
+        return Response({'error': 'Order ID required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
+        
+        # Get access token
+        token_response = requests.post(
+            f"{PAYPAL_API_BASE}/v1/oauth2/token",
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={'grant_type': 'client_credentials'}
+        )
+        access_token = token_response.json()['access_token']
+        
+        # Capture order
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        capture_response = requests.post(
+            f"{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture",
+            headers=headers
+        )
+        
+        if capture_response.status_code != 201:
+            return Response({'error': 'Payment capture failed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        capture_data = capture_response.json()
+        
+        if capture_data['status'] != 'COMPLETED':
+            return Response({'error': 'Payment not completed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update user subscription
+        from django.utils import timezone
+        profile = request.user.profile
+        profile.subscription = 'premium'
+        profile.subscription_date = timezone.now()
+        profile.save()
+        
+        # Update payment status
+        Payment.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        
+        return Response({
+            'success': True,
+            'subscription': 'premium',
+            'subscription_date': profile.subscription_date
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def payment_history(request):
+    """Get payment history"""
+    payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:50]
+    serializer = PaymentSerializer(payments, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_checkout_order(request):
+    """Create PayPal checkout order"""
+    required_fields = [
+        'amount', 'shippingMethod', 'modelName', 'email', 'fullName',
+        'address', 'city', 'state', 'postalCode', 'country'
+    ]
+    
+    for field in required_fields:
+        if field not in request.data:
+            return Response({'error': f'Missing required field: {field}'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
+        
+        # Get access token
+        token_response = requests.post(
+            f"{PAYPAL_API_BASE}/v1/oauth2/token",
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={'grant_type': 'client_credentials'}
+        )
+        access_token = token_response.json()['access_token']
+        
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+        from .paypal_utils import create_checkout_order_payload
+        
+        amount = str(request.data.get('amount'))
+        model_name = request.data.get('modelName')
+        
+        payload = create_checkout_order_payload(amount, model_name, frontend_url)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        order_response = requests.post(
+            f"{PAYPAL_API_BASE}/v2/checkout/orders",
+            json=payload,
+            headers=headers
+        )
+        
+        if order_response.status_code != 201:
+            return Response({'error': 'Failed to create PayPal order'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        order_data = order_response.json()
+        order_id = order_data['id']
+        
+        # Store order
+        Order.objects.create(
+            user=request.user,
+            paypal_order_id=order_id,
+            amount=amount,
+            status='CREATED',
+            shipping_method=request.data.get('shippingMethod'),
+            model_name=model_name,
+            design_name=request.data.get('designName'),
+            design_image=request.data.get('designImage'),
+            email=request.data.get('email'),
+            full_name=request.data.get('fullName'),
+            address=request.data.get('address'),
+            city=request.data.get('city'),
+            state=request.data.get('state'),
+            postal_code=request.data.get('postalCode'),
+            country=request.data.get('country')
+        )
+        
+        return Response({
+            'id': order_id,
+            'status': order_data['status']
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def capture_checkout_order(request):
+    """Capture PayPal checkout order"""
+    order_id = request.data.get('orderId')
+    if not order_id:
+        return Response({'error': 'Order ID required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
+        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
+        
+        # Get access token
+        token_response = requests.post(
+            f"{PAYPAL_API_BASE}/v1/oauth2/token",
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={'grant_type': 'client_credentials'}
+        )
+        access_token = token_response.json()['access_token']
+        
+        # Capture order
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        capture_response = requests.post(
+            f"{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture",
+            headers=headers
+        )
+        
+        if capture_response.status_code != 201:
+            return Response({'error': 'Payment capture failed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        capture_data = capture_response.json()
+        
+        if capture_data['status'] != 'COMPLETED':
+            return Response({'error': 'Payment not completed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update order status
+        Order.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        
+        # Extract amount
+        amount = capture_data.get('purchase_units', [{}])[0].get('payments', {}).get('captures', [{}])[0].get('amount', {}).get('value', '0.00')
+        
+        return Response({
+            'success': True,
+            'orderId': order_id,
+            'amount': amount,
+            'currency': 'USD'
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def order_history(request):
+    """Get order history"""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')[:50]
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)

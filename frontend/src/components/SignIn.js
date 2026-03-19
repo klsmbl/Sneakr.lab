@@ -56,7 +56,10 @@ export function SignIn() {
     setGlobalError('');
     try {
       const data = await apiSignIn(loginEmail, loginPassword);
-      signIn(data.user, data.token);
+      // Handle JWT response format from Django (has 'access' and 'user')
+      const token = data.access || data.token;
+      const user = data.user || data;
+      signIn(user, token);
       navigate('/');
     } catch (err) {
       setGlobalError(err.message || 'Login failed. Please try again.');
@@ -81,7 +84,10 @@ export function SignIn() {
     setGlobalError('');
     try {
       const data = await apiSignUp(signupEmail, signupPassword, 'user', fullName);
-      signIn(data.user, data.token);
+      // Handle JWT response format from Django (has 'access' and 'user')
+      const token = data.access || data.token;
+      const user = data.user || data;
+      signIn(user, token);
       navigate('/');
     } catch (err) {
       setGlobalError(err.message || 'Sign up failed. Please try again.');

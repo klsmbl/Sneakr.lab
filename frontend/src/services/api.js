@@ -1,19 +1,19 @@
 /**
  * Sneakr.lab - API client for designs and authentication
+ * Using Django backend on port 8000
  */
 
 const API_BASE =
-  process.env.REACT_APP_NODE_API_URL ||
   process.env.REACT_APP_API_URL ||
-  'http://localhost:3001';
+  'http://localhost:8000';
 
 function getAuthHeader() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 export async function signIn(email, password) {
-  const res = await fetch(`${API_BASE}/api/auth/signin`, {
+  const res = await fetch(`${API_BASE}/api/auth/signin/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -26,7 +26,7 @@ export async function signIn(email, password) {
 }
 
 export async function signUp(email, password, role = 'user', fullName = '') {
-  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+  const res = await fetch(`${API_BASE}/api/auth/signup/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, role, fullName }),
@@ -39,7 +39,7 @@ export async function signUp(email, password, role = 'user', fullName = '') {
 }
 
 export async function saveDesign(design) {
-  const res = await fetch(`${API_BASE}/api/designs`, {
+  const res = await fetch(`${API_BASE}/api/designs/`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ export async function saveDesign(design) {
 }
 
 export async function getDesigns() {
-  const res = await fetch(`${API_BASE}/api/designs`, {
+  const res = await fetch(`${API_BASE}/api/designs/`, {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to load designs');
@@ -63,7 +63,7 @@ export async function getDesigns() {
 }
 
 export async function getDesign(id) {
-  const res = await fetch(`${API_BASE}/api/designs/${id}`, {
+  const res = await fetch(`${API_BASE}/api/designs/${id}/`, {
     headers: getAuthHeader()
   });
   if (!res.ok) {
@@ -74,7 +74,7 @@ export async function getDesign(id) {
 }
 
 export async function deleteDesign(id) {
-  const res = await fetch(`${API_BASE}/api/designs/${id}`, { 
+  const res = await fetch(`${API_BASE}/api/designs/${id}/`, { 
     method: 'DELETE',
     headers: getAuthHeader()
   });
@@ -83,7 +83,7 @@ export async function deleteDesign(id) {
 
 // Subscription and Payment APIs
 export async function getSubscription() {
-  const res = await fetch(`${API_BASE}/api/subscription`, {
+  const res = await fetch(`${API_BASE}/api/subscription/`, {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to get subscription');
@@ -91,7 +91,7 @@ export async function getSubscription() {
 }
 
 export async function createSubscriptionOrder(plan) {
-  const res = await fetch(`${API_BASE}/api/subscription/create-order`, {
+  const res = await fetch(`${API_BASE}/api/subscription/create-order/`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export async function createSubscriptionOrder(plan) {
 }
 
 export async function captureSubscriptionOrder(orderId) {
-  const res = await fetch(`${API_BASE}/api/subscription/capture-order`, {
+  const res = await fetch(`${API_BASE}/api/subscription/capture-order/`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export async function captureSubscriptionOrder(orderId) {
 }
 
 export async function getPaymentHistory() {
-  const res = await fetch(`${API_BASE}/api/payments/history`, {
+  const res = await fetch(`${API_BASE}/api/payments/history/`, {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to get payment history');
@@ -132,7 +132,7 @@ export async function getPaymentHistory() {
 
 // Checkout and Order APIs
 export async function createCheckoutOrder(orderData) {
-  const res = await fetch(`${API_BASE}/api/checkout/create-order`, {
+  const res = await fetch(`${API_BASE}/api/checkout/create-order/`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export async function createCheckoutOrder(orderData) {
 }
 
 export async function captureCheckoutOrder(orderId) {
-  const res = await fetch(`${API_BASE}/api/checkout/capture-order`, {
+  const res = await fetch(`${API_BASE}/api/checkout/capture-order/`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ export async function captureCheckoutOrder(orderId) {
 }
 
 export async function getOrderHistory() {
-  const res = await fetch(`${API_BASE}/api/checkout/orders`, {
+  const res = await fetch(`${API_BASE}/api/checkout/orders/`, {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to get order history');
