@@ -1,7 +1,17 @@
 # 3D Sneaker Models Directory
 
-This directory is for local 3D model files (.glb, .gltf).
+This directory contains local 3D model files (.glb, .gltf) for the Sneakr.lab application.
 
-The default "Classic Low" model loads from an external CDN and doesn't require local files.
+## Available Models
+- airforccenew.glb - Air Force 1 model
+- converse.glb - Converse Chuck Taylor model
+- jordans 1s.glb - Air Jordan 1 model
+- Nike Air Zoom.glb - Nike Air Zoom model
 
-To add more models, download them from Sketchfab and place them here.
+Large files (>100MB) are tracked with Git LFS.
+
+## Adding New Models
+To add more models:
+1. Download from Sketchfab or another 3D model source
+2. Place the .glb or .gltf file in this directory
+3. Update the SNEAKER_MODELS array in src/data/sneakerOptions.js with the new model details
