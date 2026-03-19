@@ -135,6 +135,10 @@ public/models/*.glb
 public/models/*.gltf
 !public/models/README.md
 !public/models/DOWNLOAD-INSTRUCTIONS.txt
+!public/models/airforccenew.glb
+!public/models/converse.glb
+!public/models/jordans 1s.glb
+!public/models/Nike Air Zoom.glb
 
 # Database files
 *.sqlite
