@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Design, Payment, Order
+from .models import UserProfile, Design, Payment, Order, FAQ
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ['id', 'question', 'answer', 'order', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -24,9 +31,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
     full_name = serializers.CharField(required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=['user', 'admin'], default='user')
+
+    def validate_email(self, value):
+        """Ensure email is unique"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("User with this email already exists.")
+        return value
 
     def create(self, validated_data):
         email = validated_data['email']
@@ -59,15 +72,15 @@ class SignInSerializer(serializers.Serializer):
 class DesignSerializer(serializers.ModelSerializer):
     class Meta:
         model = Design
-        fields = ['id', 'design', 'created_at']
-        read_only_fields = ['created_at']
+        fields = ['id', 'design', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ['id', 'paypal_order_id', 'amount', 'currency', 'status', 'subscription_months', 'created_at']
-        read_only_fields = ['created_at']
+        fields = ['id', 'paypal_order_id', 'amount', 'currency', 'status', 'subscription_months', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class OrderSerializer(serializers.ModelSerializer):

@@ -56,7 +56,7 @@ export function TryOnPage() {
     setResultImage(null);
 
     try {
-      const response = await fetch(`${DJANGO_API_BASE}/api/tryon/`, {
+      const response = await fetch(`${DJANGO_API_BASE}/api/virtual-tryon/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,10 +67,19 @@ export function TryOnPage() {
         }),
       });
 
-      const data = await response.json();
+      const raw = await response.text();
+      let data = null;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        if (!response.ok) {
+          throw new Error(`Try-on request failed (${response.status}). Server returned non-JSON response.`);
+        }
+        throw new Error('Invalid server response format.');
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Try-on failed');
+        throw new Error(data?.error || 'Try-on failed');
       }
 
       if (data.success && data.result_image) {

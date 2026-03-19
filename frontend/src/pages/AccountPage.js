@@ -63,6 +63,8 @@ export default function AccountPage() {
     loadOrders();
   }, []);
 
+  const safeOrders = Array.isArray(orders) ? orders : [];
+
 
   const handleMenuClick = (sectionId) => {
     setActiveSection(sectionId);
@@ -150,13 +152,13 @@ export default function AccountPage() {
               <div className="account-card account-empty-state">
                 <p>{ordersError}</p>
               </div>
-            ) : orders.length === 0 ? (
+            ) : safeOrders.length === 0 ? (
               <div className="account-card account-empty-state">
                 <p>No orders yet. Completed purchases will appear here.</p>
               </div>
             ) : (
               <div className="account-order-grid">
-                {orders.map((order) => (
+                {safeOrders.map((order) => (
                   <article className="account-card account-order-card" key={order.id}>
                     <h3>{order.model_name || 'Custom Sneaker Order'}</h3>
                     <p>Order ID: {order.paypal_order_id || order.id}</p>

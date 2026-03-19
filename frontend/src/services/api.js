@@ -7,6 +7,12 @@ const API_BASE =
   process.env.REACT_APP_API_URL ||
   'http://localhost:8000';
 
+function normalizeListResponse(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (payload && Array.isArray(payload.results)) return payload.results;
+  return [];
+}
+
 function getAuthHeader() {
   const token = localStorage.getItem('token') || localStorage.getItem('access_token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -29,7 +35,7 @@ export async function signUp(email, password, role = 'user', fullName = '') {
   const res = await fetch(`${API_BASE}/api/auth/signup/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, role, fullName }),
+    body: JSON.stringify({ email, password, role, full_name: fullName }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Sign up failed' }));
@@ -59,7 +65,8 @@ export async function getDesigns() {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to load designs');
-  return res.json();
+  const payload = await res.json();
+  return normalizeListResponse(payload);
 }
 
 export async function getDesign(id) {
@@ -127,7 +134,8 @@ export async function getPaymentHistory() {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to get payment history');
-  return res.json();
+  const payload = await res.json();
+  return normalizeListResponse(payload);
 }
 
 // Checkout and Order APIs
@@ -168,5 +176,6 @@ export async function getOrderHistory() {
     headers: getAuthHeader()
   });
   if (!res.ok) throw new Error('Failed to get order history');
-  return res.json();
+  const payload = await res.json();
+  return normalizeListResponse(payload);
 }

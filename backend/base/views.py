@@ -1,13 +1,31 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from .models import FAQ
 import json
 import base64
 import os
 import requests
+import logging
 from pathlib import Path
+from datetime import timedelta
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.db.models import Q
+
+from rest_framework import viewsets, status, filters, pagination
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from . import serializers
+from .models import FAQ, UserProfile, Design, Payment, Order
+from .auth_utils import get_tokens_for_user
+from .paypal_utils import (
+    create_subscription_order_payload,
+    create_checkout_order_payload,
+    get_paypal_access_token,
+)
 
 try:
     from google.auth import default
@@ -17,29 +35,69 @@ try:
 except ImportError:
     GOOGLE_CLOUD_AVAILABLE = False
 
-def getRoutes(request):
-    return JsonResponse({'message': 'Welcome to Sneakr API'})
+logger = logging.getLogger(__name__)
 
-def getFAQs(request):
-    faqs = FAQ.objects.all()
-    faq_list = [
-        {
-            'id': faq.id,
-            'question': faq.question,
-            'answer': faq.answer,
-            'order': faq.order
+
+# ==================== Pagination ====================
+
+class StandardResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# ==================== Custom API Views ====================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def getRoutes(request):
+    """Welcome endpoint - list available routes"""
+    routes = {
+        'message': 'Welcome to Sneakr API',
+        'version': '1.0.0',
+        'endpoints': {
+            'auth': {
+                'signup': 'POST /api/auth/signup/',
+                'signin': 'POST /api/auth/signin/',
+                'profile': 'GET /api/auth/profile/',
+            },
+            'faqs': {
+                'list': 'GET /api/faqs/',
+                'search': 'GET /api/faqs/?search=keyword',
+            },
+            'designs': {
+                'list': 'GET /api/designs/',
+                'create': 'POST /api/designs/',
+                'detail': 'GET /api/designs/<id>/',
+                'update': 'PUT /api/designs/<id>/',
+                'delete': 'DELETE /api/designs/<id>/',
+            },
+            'subscriptions': {
+                'status': 'GET /api/subscriptions/status/',
+                'create_order': 'POST /api/subscriptions/create-order/',
+                'capture_order': 'POST /api/subscriptions/capture-order/',
+            },
+            'payments': {
+                'list': 'GET /api/payments/',
+                'history': 'GET /api/payments/history/',
+            },
+            'orders': {
+                'list': 'GET /api/orders/',
+                'create': 'POST /api/checkout/create-order/',
+                'capture': 'POST /api/checkout/capture-order/',
+            },
+            'virtual_tryon': {
+                'predict': 'POST /api/virtual-tryon/',
+            }
         }
-        for faq in faqs
-    ]
-    return JsonResponse({'faqs': faq_list})
+    }
+    return Response(routes)
+
 
 @csrf_exempt
 @require_http_methods(["POST", "OPTIONS"])
 def virtualTryOn(request):
-    """
-    Virtual Try-On endpoint using Google Vertex AI
-    Uses the official API format: personImage + productImages with nested bytesBase64Encoded
-    """
+    """Virtual Try-On endpoint using Google Vertex AI"""
     if not GOOGLE_CLOUD_AVAILABLE:
         return JsonResponse({
             'error': 'Google Cloud libraries not installed. Run: pip install google-cloud-aiplatform google-auth'
@@ -59,10 +117,7 @@ def virtualTryOn(request):
                 'error': 'Both person_image and shoe_image are required'
             }, status=400)
         
-        # Initialize Vertex AI credentials.
-        # Supports either:
-        # 1) API key mode: VERTEX_API_KEY (or GOOGLE_API_KEY) + VERTEX_PROJECT_ID
-        # 2) Service account mode: GOOGLE_APPLICATION_CREDENTIALS or ./service-account.json
+        # Initialize Vertex AI credentials
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
         vertex_api_key = os.getenv('VERTEX_API_KEY', '').strip() or os.getenv('GOOGLE_API_KEY', '').strip()
         env_project_id = os.getenv('VERTEX_PROJECT_ID', '').strip()
@@ -108,18 +163,10 @@ def virtualTryOn(request):
             credentials.refresh(Request())
             access_token = credentials.token
         
-        # Clean base64 data (remove data URL prefix if present)
+        # Clean base64 data
         person_image_b64_clean = person_image_b64.split(',')[-1] if ',' in person_image_b64 else person_image_b64
         shoe_image_b64_clean = shoe_image_b64.split(',')[-1] if ',' in shoe_image_b64 else shoe_image_b64
         
-        print("[INFO] Virtual Try-On request - using Vertex AI")
-        print(f"[INFO] Auth mode: {auth_mode}")
-        print(f"[INFO] Project ID: {project_id}")
-        print(f"[INFO] Person image length: {len(person_image_b64_clean)}")
-        print(f"[INFO] Shoe image length: {len(shoe_image_b64_clean)}")
-
-        # QUESTION: Is this the correct endpoint and model name?
-        # Based on the documentation you showed, virtual-try-on-001 should be available
         base_url = f"https://us-central1-aiplatform.googleapis.com/v1/projects/{project_id}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict"
         url = f"{base_url}?key={vertex_api_key}" if auth_mode == 'api-key' else base_url
 
@@ -129,11 +176,6 @@ def virtualTryOn(request):
         if auth_mode == 'service-account':
             headers["Authorization"] = f"Bearer {access_token}"
         
-        print(f"[DEBUG] API Endpoint: {url}")
-        
-        # CORRECT PAYLOAD FORMAT from the official documentation:
-        # The API expects "personImage" and "productImages" (not "person_image" and "garment_image")
-        # Images must be nested under "image.bytesBase64Encoded"
         payload = {
             "instances": [
                 {
@@ -153,24 +195,15 @@ def virtualTryOn(request):
             ]
         }
         
-        print(f"[INFO] Using CORRECT API format: personImage + productImages")
-        
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=60)
-            print(f"[DEBUG] Response Status: {response.status_code}")
-            print(f"[DEBUG] Response Headers: {dict(response.headers)}")
             
             if response.status_code == 200:
                 result = response.json()
-                print("[SUCCESS] Virtual Try-On API call successful!")
-                print(f"[DEBUG] Response keys: {result.keys()}")
                 
                 if "predictions" in result and result["predictions"]:
                     prediction = result["predictions"][0]
-                    print(f"[DEBUG] Prediction keys: {prediction.keys()}")
                     
-                    # According to the official docs, response format is:
-                    # {"bytesBase64Encoded": "BASE64_IMG_BYTES", "mimeType": "image/png"}
                     if "bytesBase64Encoded" in prediction:
                         result_image_b64 = prediction["bytesBase64Encoded"]
                         mime_type = prediction.get("mimeType", "image/png")
@@ -181,29 +214,22 @@ def virtualTryOn(request):
                             'api_used': 'vertex-ai-virtual-try-on'
                         })
                     else:
-                        print(f"[ERROR] Expected 'bytesBase64Encoded' in prediction, got: {prediction.keys()}")
                         return JsonResponse({
-                            'error': 'API succeeded but no bytesBase64Encoded found in response',
+                            'error': 'Expected bytesBase64Encoded in prediction',
                             'debug_info': str(prediction)
                         }, status=500)
                 else:
-                    print("[ERROR] No predictions in API response")
                     return JsonResponse({
-                        'error': 'API succeeded but no predictions found in response',
+                        'error': 'No predictions found in response',
                         'debug_info': str(result)
                     }, status=500)
             else:
-                error_text = response.text
-                print(f"[ERROR] API Error {response.status_code}: {error_text}")
-                
                 return JsonResponse({
-                    'error': f'Vertex AI Virtual Try-On API Error: {error_text}',
+                    'error': f'Vertex AI Virtual Try-On API Error: {response.text}',
                     'status_code': response.status_code,
-                    'auth_mode': auth_mode
                 }, status=response.status_code)
                 
         except requests.exceptions.RequestException as e:
-            print(f"[ERROR] Request failed: {str(e)}")
             return JsonResponse({
                 'error': f'Network error: {str(e)}'
             }, status=500)
@@ -211,159 +237,173 @@ def virtualTryOn(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        print("[ERROR] Virtual Try-On failed:", str(e))
+        logger.error(f"Virtual Try-On failed: {str(e)}")
         return JsonResponse({
             'error': f'Virtual Try-On failed: {str(e)}'
         }, status=500)
 
 
-# ==================== REST API Endpoints ====================
-
-from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth.models import User
-from .models import UserProfile, Design, Payment, Order
-from .serializers import (
-    UserSerializer, DesignSerializer, PaymentSerializer, OrderSerializer,
-    SignUpSerializer, SignInSerializer, SubscriptionStatusSerializer
-)
-from .auth_utils import get_tokens_for_user
-import requests
-
+# ==================== Authentication Views ====================
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sign_up(request):
     """User signup endpoint"""
-    serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
+    serializer_obj = serializers.SignUpSerializer(data=request.data)
+    if serializer_obj.is_valid():
+        user = serializer_obj.save()
         tokens = get_tokens_for_user(user)
         return Response(tokens, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer_obj.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sign_in(request):
     """User signin endpoint"""
-    serializer = SignInSerializer(data=request.data)
-    if serializer.is_valid():
-        email = serializer.validated_data['email']
-        password = serializer.validated_data['password']
+    serializer_obj = serializers.SignInSerializer(data=request.data)
+    if serializer_obj.is_valid():
+        email = serializer_obj.validated_data['email']
+        password = serializer_obj.validated_data['password']
         
         try:
-            user = User.objects.get(email=email)
-            if user.check_password(password):
-                tokens = get_tokens_for_user(user)
-                return Response(tokens, status=status.HTTP_200_OK)
-            else:
+            # Fetch user by email with profile
+            user = User.objects.select_related('profile').get(email=email)
+            
+            # Verify password
+            if not user.check_password(password):
+                logger.warning(f"Invalid password for user {email}")
                 return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Ensure profile exists
+            if not hasattr(user, 'profile'):
+                logger.error(f"User {email} has no profile, creating one")
+                UserProfile.objects.get_or_create(user=user)
+                user.refresh_from_db()
+            
+            # Generate tokens
+            tokens = get_tokens_for_user(user)
+            logger.info(f"User {email} signed in successfully")
+            return Response(tokens, status=status.HTTP_200_OK)
+            
         except User.DoesNotExist:
+            logger.warning(f"Sign in attempt with non-existent email: {email}")
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Sign in error for {email}: {str(e)}")
+            return Response({'error': 'An error occurred during sign in'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response(serializer_obj.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
     """Get current user profile"""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+    serializer_obj = serializers.UserSerializer(request.user)
+    return Response(serializer_obj.data)
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def design_list(request):
-    """List and create designs"""
-    if request.method == 'POST':
-        design_data = request.data
-        design = Design.objects.create(
-            user=request.user,
-            design=design_data
-        )
-        serializer = DesignSerializer(design)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+# ==================== ViewSets - DRF Best Practices ====================
+
+class FAQViewSet(viewsets.ReadOnlyModelViewSet):
+    """FAQ ViewSet - Read-only"""
+    queryset = FAQ.objects.all()
+    serializer_class = serializers.FAQSerializer
+    permission_classes = [AllowAny]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['question', 'answer']
+    ordering_fields = ['order', 'created_at']
+    ordering = ['order']
+
+
+class DesignViewSet(viewsets.ModelViewSet):
+    """Design ViewSet - Full CRUD"""
+    serializer_class = serializers.DesignSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
     
-    # GET
-    designs = Design.objects.filter(user=request.user)
-    if request.user.profile.role == 'admin':
-        designs = Design.objects.all()
+    def get_queryset(self):
+        """Users see only their designs, admins see all"""
+        if self.request.user.profile.role == 'admin':
+            return Design.objects.all()
+        return Design.objects.filter(user=self.request.user)
     
-    serializer = DesignSerializer(designs, many=True)
-    return Response(serializer.data)
+    def perform_create(self, serializer):
+        """Attach current user to design"""
+        serializer.save(user=self.request.user)
 
 
-@api_view(['GET', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def design_detail(request, design_id):
-    """Get or delete specific design"""
-    try:
-        if request.user.profile.role == 'admin':
-            design = Design.objects.get(id=design_id)
-        else:
-            design = Design.objects.get(id=design_id, user=request.user)
-    except Design.DoesNotExist:
-        return Response({'error': 'Design not found'}, status=status.HTTP_404_NOT_FOUND)
+class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    """Payment ViewSet - Read-only"""
+    serializer_class = serializers.PaymentSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['created_at', 'status']
+    ordering = ['-created_at']
     
-    if request.method == 'GET':
-        serializer = DesignSerializer(design)
-        return Response(serializer.data)
-    
-    # DELETE
-    design.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        """Users see only their payments"""
+        if self.request.user.profile.role == 'admin':
+            return Payment.objects.all()
+        return Payment.objects.filter(user=self.request.user)
 
+
+class OrderViewSet(viewsets.ReadOnlyModelViewSet):
+    """Order ViewSet - Read-only"""
+    serializer_class = serializers.OrderSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    search_fields = ['paypal_order_id', 'full_name']
+    ordering_fields = ['created_at', 'status']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        """Users see only their orders"""
+        if self.request.user.profile.role == 'admin':
+            return Order.objects.all()
+        return Order.objects.filter(user=self.request.user)
+
+
+# ==================== PayPal Payment Endpoints ====================
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def subscription_status(request):
     """Get current subscription status"""
-    profile = request.user.profile
-    data = {
-        'tier': profile.subscription,
-        'subscription_date': profile.subscription_date,
-        'can_upgrade': profile.subscription == 'free'
-    }
-    return Response(data)
+    try:
+        # Ensure profile exists
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created profile for user {request.user.email}")
+        
+        serializer_obj = serializers.SubscriptionStatusSerializer({
+            'tier': profile.subscription,
+            'subscription_date': profile.subscription_date,
+            'can_upgrade': profile.subscription == 'free'
+        })
+        return Response(serializer_obj.data)
+    except Exception as e:
+        logger.error(f"Error getting subscription status: {str(e)}")
+        return Response({'error': 'Failed to get subscription status'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_subscription_order(request):
     """Create PayPal subscription order"""
-    from .paypal_utils import create_subscription_order_payload, get_paypal_access_token
-    
     plan = request.data.get('plan')
     if plan not in ['monthly', 'yearly']:
         return Response({'error': 'Invalid plan'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        # Get PayPal access token (sync call for now)
-        import base64
-        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
-        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
-        
-        if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
-            return Response({'error': 'PayPal not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        auth = f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}"
-        auth_b64 = base64.b64encode(auth.encode()).decode()
-        
-        # Get access token
-        token_response = requests.post(
-            f"{PAYPAL_API_BASE}/v1/oauth2/token",
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-            data={'grant_type': 'client_credentials'}
-        )
-        
-        if token_response.status_code != 200:
-            return Response({'error': 'Failed to authenticate with PayPal'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        access_token = token_response.json()['access_token']
+        PAYPAL_API_BASE = os.getenv('PAYPAL_API_BASE', 'https://api-m.sandbox.paypal.com').rstrip('/')
+        access_token = get_paypal_access_token()
         frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
         
         # Create order
@@ -376,13 +416,20 @@ def create_subscription_order(request):
         order_response = requests.post(
             f"{PAYPAL_API_BASE}/v2/checkout/orders",
             json=payload,
-            headers=headers
+            headers=headers,
+            timeout=20,
         )
-        
+
+        try:
+            order_data = order_response.json()
+        except ValueError:
+            logger.error('PayPal create subscription order returned non-JSON. Status=%s', order_response.status_code)
+            return Response({'error': 'Invalid PayPal response while creating order'}, status=status.HTTP_502_BAD_GATEWAY)
+
         if order_response.status_code != 201:
-            return Response({'error': 'Failed to create PayPal order'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        order_data = order_response.json()
+            message = order_data.get('message') or order_data.get('name') or 'Failed to create PayPal order'
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+
         order_id = order_data['id']
         
         # Store in database
@@ -400,6 +447,7 @@ def create_subscription_order(request):
             'status': order_data['status']
         })
     except Exception as e:
+        logger.error(f"Error creating subscription order: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -412,17 +460,8 @@ def capture_subscription_order(request):
         return Response({'error': 'Order ID required'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
-        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
-        
-        # Get access token
-        token_response = requests.post(
-            f"{PAYPAL_API_BASE}/v1/oauth2/token",
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-            data={'grant_type': 'client_credentials'}
-        )
-        access_token = token_response.json()['access_token']
+        PAYPAL_API_BASE = os.getenv('PAYPAL_API_BASE', 'https://api-m.sandbox.paypal.com').rstrip('/')
+        access_token = get_paypal_access_token()
         
         # Capture order
         headers = {
@@ -430,28 +469,40 @@ def capture_subscription_order(request):
             'Authorization': f'Bearer {access_token}'
         }
         
+        logger.info(f"Capturing PayPal order {order_id}")
         capture_response = requests.post(
             f"{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture",
-            headers=headers
+            headers=headers,
+            timeout=20,
         )
-        
+
+        try:
+            capture_data = capture_response.json()
+        except ValueError:
+            logger.error('PayPal capture subscription returned non-JSON. Status=%s', capture_response.status_code)
+            return Response({'error': 'Invalid PayPal response while capturing payment'}, status=status.HTTP_502_BAD_GATEWAY)
+
         if capture_response.status_code != 201:
-            return Response({'error': 'Payment capture failed'}, status=status.HTTP_400_BAD_REQUEST)
+            message = capture_data.get('message') or capture_data.get('name') or 'Payment capture failed'
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         
-        capture_data = capture_response.json()
-        
-        if capture_data['status'] != 'COMPLETED':
+        if capture_data.get('status') != 'COMPLETED':
+            logger.warning(f"PayPal order not completed: {capture_data.get('status')}")
             return Response({'error': 'Payment not completed'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Update user subscription
-        from django.utils import timezone
-        profile = request.user.profile
+        # Ensure profile exists and update subscription
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created profile for user {request.user.email}")
+        
         profile.subscription = 'premium'
         profile.subscription_date = timezone.now()
         profile.save()
+        logger.info(f"User {request.user.email} subscription updated to premium")
         
         # Update payment status
-        Payment.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        updated_count = Payment.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        logger.info(f"Updated {updated_count} payment records")
         
         return Response({
             'success': True,
@@ -459,16 +510,8 @@ def capture_subscription_order(request):
             'subscription_date': profile.subscription_date
         })
     except Exception as e:
+        logger.error(f"Error capturing subscription order: {str(e)}", exc_info=True)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def payment_history(request):
-    """Get payment history"""
-    payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:50]
-    serializer = PaymentSerializer(payments, many=True)
-    return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -485,21 +528,10 @@ def create_checkout_order(request):
             return Response({'error': f'Missing required field: {field}'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
-        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
-        
-        # Get access token
-        token_response = requests.post(
-            f"{PAYPAL_API_BASE}/v1/oauth2/token",
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-            data={'grant_type': 'client_credentials'}
-        )
-        access_token = token_response.json()['access_token']
+        PAYPAL_API_BASE = os.getenv('PAYPAL_API_BASE', 'https://api-m.sandbox.paypal.com').rstrip('/')
+        access_token = get_paypal_access_token()
         
         frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
-        from .paypal_utils import create_checkout_order_payload
-        
         amount = str(request.data.get('amount'))
         model_name = request.data.get('modelName')
         
@@ -512,13 +544,20 @@ def create_checkout_order(request):
         order_response = requests.post(
             f"{PAYPAL_API_BASE}/v2/checkout/orders",
             json=payload,
-            headers=headers
+            headers=headers,
+            timeout=20,
         )
-        
+
+        try:
+            order_data = order_response.json()
+        except ValueError:
+            logger.error('PayPal create checkout order returned non-JSON. Status=%s', order_response.status_code)
+            return Response({'error': 'Invalid PayPal response while creating checkout order'}, status=status.HTTP_502_BAD_GATEWAY)
+
         if order_response.status_code != 201:
-            return Response({'error': 'Failed to create PayPal order'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        order_data = order_response.json()
+            message = order_data.get('message') or order_data.get('name') or 'Failed to create PayPal order'
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
+
         order_id = order_data['id']
         
         # Store order
@@ -545,6 +584,7 @@ def create_checkout_order(request):
             'status': order_data['status']
         })
     except Exception as e:
+        logger.error(f"Error creating checkout order: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -557,17 +597,8 @@ def capture_checkout_order(request):
         return Response({'error': 'Order ID required'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
-        PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-        PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
-        
-        # Get access token
-        token_response = requests.post(
-            f"{PAYPAL_API_BASE}/v1/oauth2/token",
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-            data={'grant_type': 'client_credentials'}
-        )
-        access_token = token_response.json()['access_token']
+        PAYPAL_API_BASE = os.getenv('PAYPAL_API_BASE', 'https://api-m.sandbox.paypal.com').rstrip('/')
+        access_token = get_paypal_access_token()
         
         # Capture order
         headers = {
@@ -575,25 +606,35 @@ def capture_checkout_order(request):
             'Authorization': f'Bearer {access_token}'
         }
         
+        logger.info(f"Capturing PayPal checkout order {order_id}")
         capture_response = requests.post(
             f"{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture",
-            headers=headers
+            headers=headers,
+            timeout=20,
         )
-        
+
+        try:
+            capture_data = capture_response.json()
+        except ValueError:
+            logger.error('PayPal capture checkout returned non-JSON. Status=%s', capture_response.status_code)
+            return Response({'error': 'Invalid PayPal response while capturing checkout payment'}, status=status.HTTP_502_BAD_GATEWAY)
+
         if capture_response.status_code != 201:
-            return Response({'error': 'Payment capture failed'}, status=status.HTTP_400_BAD_REQUEST)
+            message = capture_data.get('message') or capture_data.get('name') or 'Payment capture failed'
+            return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
         
-        capture_data = capture_response.json()
-        
-        if capture_data['status'] != 'COMPLETED':
+        if capture_data.get('status') != 'COMPLETED':
+            logger.warning(f"PayPal order not completed: {capture_data.get('status')}")
             return Response({'error': 'Payment not completed'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Update order status
-        Order.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        updated_count = Order.objects.filter(paypal_order_id=order_id).update(status='COMPLETED')
+        logger.info(f"Updated {updated_count} order records to COMPLETED")
         
         # Extract amount
         amount = capture_data.get('purchase_units', [{}])[0].get('payments', {}).get('captures', [{}])[0].get('amount', {}).get('value', '0.00')
         
+        logger.info(f"Checkout order {order_id} completed for user {request.user.email}")
         return Response({
             'success': True,
             'orderId': order_id,
@@ -601,13 +642,5 @@ def capture_checkout_order(request):
             'currency': 'USD'
         })
     except Exception as e:
+        logger.error(f"Error capturing checkout order: {str(e)}", exc_info=True)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def order_history(request):
-    """Get order history"""
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')[:50]
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)

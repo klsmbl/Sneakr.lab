@@ -1,48 +1,52 @@
 import os
 import logging
-from typing import Optional, Dict, Any
+from typing import Dict, Any
+
+import requests
 
 logger = logging.getLogger(__name__)
 
-PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
-PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com'
+PAYPAL_API_BASE = os.getenv('PAYPAL_API_BASE', 'https://api-m.sandbox.paypal.com').rstrip('/')
 
 
-async def get_paypal_access_token() -> str:
-    """Get PayPal access token"""
-    import asyncio
-    
-    if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
-        raise ValueError('PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set')
-    
-    auth = f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}"
-    import base64
-    auth_b64 = base64.b64encode(auth.encode()).decode()
-    
-    logger.info('Getting PayPal access token...')
-    
+def get_paypal_access_token() -> str:
+    """Get PayPal access token and raise descriptive errors when auth fails."""
+    paypal_client_id = os.getenv('PAYPAL_CLIENT_ID', '').strip()
+    paypal_client_secret = os.getenv('PAYPAL_CLIENT_SECRET', '').strip()
+
+    if not paypal_client_id or not paypal_client_secret:
+        raise ValueError('PayPal credentials are missing. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.')
+
+    logger.info('Requesting PayPal access token')
+
     try:
-        import urllib.request
-        import json
-        
-        req = urllib.request.Request(
+        token_response = requests.post(
             f"{PAYPAL_API_BASE}/v1/oauth2/token",
-            data=b'grant_type=client_credentials',
-            headers={
-                'Authorization': f'Basic {auth_b64}',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            method='POST'
+            auth=(paypal_client_id, paypal_client_secret),
+            data={'grant_type': 'client_credentials'},
+            timeout=20,
         )
-        
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode())
-            logger.info('PayPal auth successful')
-            return data['access_token']
-    except Exception as err:
-        logger.error(f'PayPal auth error: {err}')
-        raise
+    except requests.RequestException as exc:
+        logger.error('PayPal auth request failed: %s', str(exc))
+        raise ValueError('Unable to connect to PayPal authentication endpoint.') from exc
+
+    try:
+        token_payload = token_response.json()
+    except ValueError as exc:
+        logger.error('PayPal auth returned non-JSON response. Status=%s Body=%s', token_response.status_code, token_response.text)
+        raise ValueError('PayPal authentication returned an invalid response.') from exc
+
+    if token_response.status_code != 200:
+        logger.error('PayPal auth failed. Status=%s Payload=%s', token_response.status_code, token_payload)
+        error_description = token_payload.get('error_description') or token_payload.get('error') or 'Unknown PayPal auth error'
+        raise ValueError(f'PayPal authentication failed: {error_description}')
+
+    access_token = token_payload.get('access_token')
+    if not access_token:
+        logger.error('PayPal auth response missing access_token. Payload=%s', token_payload)
+        raise ValueError('PayPal authentication succeeded but no access token was returned.')
+
+    return access_token
 
 
 def create_subscription_order_payload(plan: str, frontend_url: str) -> Dict[str, Any]:
