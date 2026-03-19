@@ -1,0 +1,8 @@
+# Ignore local dependencies and git internals
+.git/
+node_modules/
+frontend/node_modules/
+backend/venv/
+
+# Ignore local large 3D assets; serve these from external storage/CDN in production
+frontend/public/models/

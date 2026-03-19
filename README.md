@@ -171,6 +171,23 @@ The app supports custom 3D sneaker models in `.glb` or `.gltf` format:
 - Place them in `public/models/` directory
 - Configure new models in `frontend/src/data/sneakerOptions.js`
 
+### Using Large Models with Vercel (100MB+)
+
+Vercel source uploads can fail when very large model files are included in the repo upload. For large `.glb`/`.gltf` assets, host model files in object storage/CDN (for example: Cloudflare R2, AWS S3 + CloudFront, Supabase Storage) and point the frontend to that host.
+
+1. Upload your model files under a `/models/` path on your storage host.
+2. Set frontend environment variable:
+  - `REACT_APP_MODEL_ASSET_BASE_URL=https://your-cdn-domain.com`
+3. Keep model entries in `frontend/src/data/sneakerModelAssets.js` as `/models/...` paths.
+
+At runtime, the app automatically rewrites `/models/...` to your external host when `REACT_APP_MODEL_ASSET_BASE_URL` is set.
+If it is not set, the app uses a hosted fallback sneaker model so the customizer still works, but your large custom files will not be shown.
+
+For Vercel, add the variable in Project Settings -> Environment Variables:
+- Name: `REACT_APP_MODEL_ASSET_BASE_URL`
+- Value example: `https://cdn.your-domain.com`
+- Environments: Production (and Preview if needed)
+
 ## Development
 
 ### Available Scripts

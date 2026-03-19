@@ -6,6 +6,28 @@
 const KHRONOS_BASE =
   'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0';
 const UI_CODE_TV_BASE = 'https://raw.githubusercontent.com/ui-code-tv/3d-shoe-model-gltf/master';
+const DEFAULT_FALLBACK_MODEL_URL =
+  `${KHRONOS_BASE}/MaterialsVariantsShoe/glTF-Binary/MaterialsVariantsShoe.glb`;
+const EXTERNAL_MODEL_BASE_URL = process.env.REACT_APP_MODEL_ASSET_BASE_URL
+  ? process.env.REACT_APP_MODEL_ASSET_BASE_URL.trim().replace(/\/$/, '')
+  : '';
+
+function resolveModelUrl(url) {
+  if (!url || /^https?:\/\//i.test(url)) return url;
+
+  if (url.startsWith('/models/')) {
+    // When configured, load local /models assets from external object storage/CDN.
+    if (EXTERNAL_MODEL_BASE_URL) {
+      return `${EXTERNAL_MODEL_BASE_URL}${encodeURI(url)}`;
+    }
+
+    // In production on Vercel, large local models may be excluded from deployment.
+    // Use a hosted fallback model so the app remains usable instead of crashing.
+    return DEFAULT_FALLBACK_MODEL_URL;
+  }
+
+  return url;
+}
 
 export const SNEAKER_MODEL_ASSETS = {
   'classic-1': {
@@ -112,8 +134,9 @@ export const SNEAKER_MODEL_ASSETS = {
 };
 
 export function getSneakerAsset(modelId) {
-  return (
-    SNEAKER_MODEL_ASSETS[modelId] ??
-    SNEAKER_MODEL_ASSETS['airforce']
-  );
+  const asset = SNEAKER_MODEL_ASSETS[modelId] ?? SNEAKER_MODEL_ASSETS['airforce'];
+  return {
+    ...asset,
+    url: resolveModelUrl(asset.url),
+  };
 }
